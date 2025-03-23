@@ -1,0 +1,95 @@
+
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">THE ROSEBUD COLLECTION</h1>
+                </div>
+            </div>
+        </header>
+        <section class="py-5">
+            <div class="container px-4 px-lg-5 mt-5">
+                <div class="mb-4 text-center">
+                    <input type="text" id="movieSearchBar" class="form-control" placeholder="Search for a film..." onkeyup="filterFilms()">
+                </div>
+                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                    <div class="col mb-5 film">
+                        <div class="card h-100">
+                            <!-- Product image-->
+                            <img class="card-img-top poster-img" src="./assets/images/the400blows.jpg" alt="The 400 Blows" />
+                            <!-- Product details-->
+                            <div class="card-body p-4">
+                                <div class="text-center">
+                                    <!-- Product name-->
+                                    <h5 class="fw-bolder">The 400 Blows (1959)</h5>
+                                    <!-- Product price-->
+                                    Director: François Truffaut
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="col mb-5 film">
+                        <div class="card h-100">
+                            <!-- Product image-->
+                            <img class="card-img-top poster-img" src="./assets/images/cinemaparadiso.jpg" alt="Cinema Paradiso" />
+                            <!-- Product details-->
+                            <div class="card-body p-4">
+                                <div class="text-center">
+                                    <!-- Product name-->
+                                    <h5 class="fw-bolder">Cinema Paradiso (1988)</h5>
+                                    <!-- Product price-->
+                                    Director: Giuseppe Tornatore
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="col mb-5 film">
+                        <div class="card h-100">
+                            <!-- Product image-->
+                            <img class="card-img-top poster-img" src="./assets/images/Yojimbo_poster.jpg" alt="Yojimbo" />
+                            <!-- Product details-->
+                            <div class="card-body p-4">
+                                <div class="text-center">
+                                    <!-- Product name-->
+                                    <h5 class="fw-bolder">Yojimbo (1961)</h5>
+                                    <!-- Product price-->
+                                    Director: Akira Kurosawa
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div><div class="col mb-5 film">
+                        <div class="card h-100">
+                            <!-- Product image-->
+                            <img class="card-img-top poster-img" src="./assets/images/stopmakingsense.jpg" alt="Stop Making Sense" />
+                            <!-- Product details-->
+                            <div class="card-body p-4">
+                                <div class="text-center">
+                                    <!-- Product name-->
+                                    <h5 class="fw-bolder">Stop Making Sense (1984)</h5>
+                                    <!-- Product price-->
+                                    Director: Jonathan Demme
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <footer class="py-5 bg-dark">
+            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p></div>
+          </footer>
+        <script>
+            function filterFilms() {
+                let input = document.getElementById("movieSearchBar").value.toLowerCase();
+                let films = document.querySelectorAll(".film");
+        
+                films.forEach(film => {
+                    let title = film.querySelector("h5").innerText.toLowerCase();
+                    film.style.display = title.includes(input) ? "flex" : "none";
+                });
+            }
+        </script>
