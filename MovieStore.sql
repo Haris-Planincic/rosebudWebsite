@@ -1,0 +1,63 @@
+CREATE DATABASE MovieStore;
+USE MovieStore;
+
+CREATE TABLE Users (
+    userId INT AUTO_INCREMENT PRIMARY KEY,
+    firstName VARCHAR(50) NOT NULL,
+    lastName VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    accountCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE Products (
+    productId INT AUTO_INCREMENT PRIMARY KEY,
+    productName VARCHAR(100) NOT NULL,
+    productPrice DECIMAL(10,2) NOT NULL,
+    productDescription TEXT
+);
+
+
+CREATE TABLE Films (
+    filmId INT AUTO_INCREMENT PRIMARY KEY,
+    filmTitle VARCHAR(255) NOT NULL,
+    yearOfRelease YEAR NOT NULL,
+    director VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE Locations (
+    locationId INT AUTO_INCREMENT PRIMARY KEY,
+    locationAddress VARCHAR(255) NOT NULL,
+    locationName VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE Screenings (
+    screeningId INT AUTO_INCREMENT PRIMARY KEY,
+    filmId INT NOT NULL,
+    locationId INT NOT NULL,
+    screeningTime DATETIME NOT NULL,
+    FOREIGN KEY (filmId) REFERENCES Films(filmId) ON DELETE CASCADE,
+    FOREIGN KEY (locationId) REFERENCES Locations(locationId) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Payments (
+    paymentId INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    paymentDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE
+);
+
+
+CREATE TABLE UserPurchases (
+    purchaseId INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    productId INT NOT NULL,
+    purchaseDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE,
+    FOREIGN KEY (productId) REFERENCES Products(productId) ON DELETE CASCADE
+);
