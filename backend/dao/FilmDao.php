@@ -5,11 +5,13 @@ class FilmDao extends BaseDao {
     public function __construct() {
         parent::__construct("Films");
     }
-    public function getByTitle($title) {
-        $stmt = $this->connection->prepare("SELECT * FROM Films WHERE filmTitle = :title");
-        $stmt->bindParam(':title', $title, PDO::PARAM_STR);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    public function getById($id, $primaryKey = 'filmId') {
+        return parent::getById($id, $primaryKey);
+    }
+
+    public function delete($id, $primaryKey = 'filmId') {
+        return parent::delete($id, $primaryKey);
     }
 }
-?>
+

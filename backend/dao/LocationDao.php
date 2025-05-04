@@ -2,15 +2,11 @@
 require_once 'BaseDao.php';
 
 class LocationDao extends BaseDao {
-   public function __construct() {
-       parent::__construct("Locations");
-   }
+    public function __construct() {
+        parent::__construct("Locations");
+    }
 
-   public function getByAddress($address) {
-       $stmt = $this->connection->prepare("SELECT * FROM Locations WHERE locationAddress = :address");
-       $stmt->bindParam(':address', $address);
-       $stmt->execute();
-       return $stmt->fetch();
-   }
+    public function getById($id, $primaryKey = 'locationId') {
+        return parent::getById($id, $primaryKey);
+    }
 }
-?>

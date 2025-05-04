@@ -1,0 +1,6 @@
+{
+  "require": {
+    "mikecao/flight": "^3.15",
+    "php": ">=8.2"
+  }
+}

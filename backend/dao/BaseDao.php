@@ -7,7 +7,7 @@ class BaseDao {
 
    public function __construct($table) {
        $this->table = $table;
-       $this->connection = (new Database())->getConnection();
+       $this->connection = Database::connect();
    }
 
    public function getAll() {
@@ -48,5 +48,5 @@ class BaseDao {
        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
        return $stmt->execute();
    }
-} 
+}
 ?>
