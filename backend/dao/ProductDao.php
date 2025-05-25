@@ -10,6 +10,3 @@ class ProductDao extends BaseDao {
         return parent::getById($id, $primaryKey);
     }
 }
-
-
-

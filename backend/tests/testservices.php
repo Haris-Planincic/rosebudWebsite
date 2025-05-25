@@ -15,8 +15,6 @@ require_once __DIR__ . '/../services/UserService.php';
 require_once __DIR__ . '/../services/PaymentService.php';
 require_once __DIR__ . '/../services/UserPurchaseService.php';
 
-// ... (same as before)
-
 function testService($service, $createData, $updateData) {
     echo "Testing " . get_class($service) . "...\n";
 
@@ -28,7 +26,7 @@ function testService($service, $createData, $updateData) {
         $all = $service->getAll();
         echo "Get All: " . count($all) . " entries found\n";
 
-        $fetched = $service->getById($id); // Ensure the correct column is passed for each service
+        $fetched = $service->getById($id); 
         echo "Get By ID: " . json_encode($fetched) . "\n";
 
         $service->update($id, $updateData);
@@ -41,7 +39,6 @@ function testService($service, $createData, $updateData) {
     }
 }
 
-// Test data update to match correct columns and ids
 $filmService = new FilmService();
 $locationService = new LocationService();
 $screeningService = new ScreeningService();
@@ -80,11 +77,11 @@ testService($screeningService,
     ['screeningTime' => '2025-05-06 18:00:00']
 );
 
-// UserPurchaseService test with valid IDs
+
 try {
     echo "Testing UserPurchaseService...\n";
-    // Pass the data as an associative array with keys 'userId' and 'productId'
-    $purchaseData = ['userId' => 1, 'productId' => 1];  // Valid userId and productId
+    
+    $purchaseData = ['userId' => 1, 'productId' => 1];  
     $purchase = $userPurchaseService->create($purchaseData);
     echo "Create: Success (Purchase ID: {$purchase['purchaseId']})\n";
 

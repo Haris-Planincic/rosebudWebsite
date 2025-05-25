@@ -10,5 +10,3 @@ class UserPurchaseDao extends BaseDao {
         return parent::getById($id, $primaryKey);
     }
 }
-
-
