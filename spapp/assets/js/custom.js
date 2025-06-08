@@ -56,14 +56,7 @@ $(document).ready(function () {
 
   app.route({ view: 'login', load: '../assets/html/login.html', onReady: setupLoginForm });
   app.route({ view: 'register', load: '../assets/html/register.html', onReady: setupRegisterForm });
-  app.route({ view: 'product1', load: '../assets/html/product1.html', onReady: updateNavbar });
-  app.route({ view: 'product2', load: '../assets/html/product2.html', onReady: updateNavbar });
-  app.route({ view: 'product3', load: '../assets/html/product3.html', onReady: updateNavbar });
-  app.route({ view: 'product4', load: '../assets/html/product4.html', onReady: updateNavbar });
-  app.route({ view: 'product5', load: '../assets/html/product5.html', onReady: updateNavbar });
-  app.route({ view: 'product6', load: '../assets/html/product6.html', onReady: updateNavbar });
-  app.route({ view: 'product7', load: '../assets/html/product7.html', onReady: updateNavbar });
-  app.route({ view: 'product8', load: '../assets/html/product8.html', onReady: updateNavbar });
+
 
   app.route({
     view: 'view_3',
@@ -177,24 +170,32 @@ $(document).ready(function () {
   }
   function setupRegisterForm() {
   updateNavbar();
+
   $('#registerForm').on('submit', async function (e) {
     e.preventDefault();
 
-    const firstName = $('#exampleFirstName').val();
-    const lastName = $('#exampleLastName').val();
-    const email = $('#exampleInputEmail').val();
-    const password = $('#exampleInputPassword').val();
-    const repeatPassword = $('#exampleRepeatPassword').val();
+    const firstName = $('#exampleFirstName').val().trim();
+    const lastName = $('#exampleLastName').val().trim();
+    const email = $('#exampleInputEmail').val().trim();
+    const password = $('#exampleInputPassword').val().trim();
+    const repeatPassword = $('#exampleRepeatPassword').val().trim();
 
+    // ✅ Only validate on frontend
     if (password !== repeatPassword) {
       alert("Passwords do not match!");
       return;
     }
 
+    // ✅ Backend expects: firstName, lastName, email, password
     const response = await fetch('http://localhost/webprogramming2025-milestone1/backend/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName, lastName, email, password }) 
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password
+      })
     });
 
     const result = await response.json();
@@ -203,10 +204,12 @@ $(document).ready(function () {
       alert("Account created! You can now log in.");
       window.location.hash = '#login';
     } else {
-      alert(result.message || "Registration failed.");
+      alert(result.error || "Registration failed.");
     }
   });
 }
+
+
 
 
 });
