@@ -1,5 +1,5 @@
 <?php
-
+require_once __DIR__ . "/../data/roles.php";
 /**
  * @OA\Get(
  *     path="/films",
@@ -11,10 +11,9 @@
  *     )
  * )
  */
-Flight::route('GET /films', function(){
+Flight::route('GET /films', function() {
     Flight::json(Flight::filmService()->getAll());
 });
-
 /**
  * @OA\Get(
  *     path="/films/{filmId}",
@@ -33,10 +32,10 @@ Flight::route('GET /films', function(){
  *     )
  * )
  */
-Flight::route('GET /films/@filmId', function($id){
+Flight::route('GET /films/@filmId', function($id) {
+    Flight::auth_middleware()->authorizeRoles([Roles::USER, Roles::ADMIN]);
     Flight::json(Flight::filmService()->getById($id));
 });
-
 /**
  * @OA\Post(
  *     path="/films",
@@ -58,7 +57,12 @@ Flight::route('GET /films/@filmId', function($id){
  *     )
  * )
  */
-Flight::route('POST /films', function(){
+Flight::route('POST /films', function() {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN); 
+
     $data = Flight::request()->data->getData();
     Flight::json(Flight::filmService()->create($data));
 });
@@ -91,11 +95,14 @@ Flight::route('POST /films', function(){
  *     )
  * )
  */
-Flight::route('PUT /films/@filmId', function($id){
+Flight::route('PUT /films/@filmId', function($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     $data = Flight::request()->data->getData();
     Flight::json(Flight::filmService()->update($id, $data));
 });
-
 /**
  * @OA\Delete(
  *     path="/films/{filmId}",
@@ -114,6 +121,10 @@ Flight::route('PUT /films/@filmId', function($id){
  *     )
  * )
  */
-Flight::route('DELETE /films/@filmId', function($id){
+Flight::route('DELETE /films/@filmId', function($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::filmService()->delete($id));
 });

@@ -4,38 +4,58 @@
         <h2 class="mb-3">Database Tables</h2>
         
         <div class="mb-3">
-            <button class="btn btn-primary">Add User</button>
-            <button class="btn btn-secondary">Add Film</button>
-            <button class="btn btn-success">Add Product</button>
-            <button class="btn btn-warning">Add Location</button>
-            <button class="btn btn-info">Add Screening</button>
-            <button class="btn btn-danger">Add Payment</button>
-            <button class="btn btn-dark">Add Purchase</button>
+            <button class="btn btn-primary" onclick="showAddUserForm()">Add User</button>
+            <button class="btn btn-secondary" onclick="showAddFilmForm()">Add Film</button>
+            <button class="btn btn-success" onclick="showAddProductForm()">Add Product</button>
+            <button class="btn btn-warning" onclick="showAddLocationForm()">Add Location</button>
+            <button class="btn btn-info" onclick="showAddScreeningForm()">Add Screening</button>
         </div>
         
         <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search...">
         
         <h3 class="mt-4">Users</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Account Created</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>John</td>
-                    <td>Doe</td>
-                    <td>john@example.com</td>
-                    <td>2025-03-25</td>
-                </tr>
-            </tbody>
-        </table>
+<table class="table table-bordered searchable bg-white">
+  <thead>
+    <tr>
+      <th>User ID</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Email</th>
+      <th>Created</th>
+      <th>Role</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="userTableBody"></tbody>
+</table>
+
+<div id="userFormContainer" class="my-4" style="display: none;">
+  <h4 id="userFormTitle">Add New User</h4>
+  <form id="userForm">
+    <input type="hidden" id="userId">
+    <div class="mb-2">
+      <input type="text" id="userFirstName" class="form-control" placeholder="First Name" required>
+    </div>
+    <div class="mb-2">
+      <input type="text" id="userLastName" class="form-control" placeholder="Last Name" required>
+    </div>
+    <div class="mb-2">
+      <input type="email" id="userEmail" class="form-control" placeholder="Email" required>
+    </div>
+    <div class="mb-2">
+      <input type="password" id="userPassword" class="form-control" placeholder="Password" required>
+    </div>
+    <div class="mb-2">
+      <select id="userRole" class="form-control" required>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" onclick="cancelUserForm()">Cancel</button>
+  </form>
+</div>
+
         
         <h3 class="mt-4">Films</h3>
         <table class="table table-bordered searchable bg-white">
@@ -43,97 +63,173 @@
                 <tr>
                     <th>Film ID</th>
                     <th>Title</th>
-                    <th>Year of Release</th>
+                    <th>Year</th>
                     <th>Director</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Inception</td>
-                    <td>2010</td>
-                    <td>Christopher Nolan</td>
-                </tr>
-            </tbody>
+            <tbody id="filmTableBody"></tbody>
         </table>
-        
+        <div id="filmFormContainer" class="my-4" style="display: none;">
+    <h4 id="filmFormTitle">Add New Film</h4>
+    <form id="filmForm">
+        <input type="hidden" id="filmId">
+
+        <div class="mb-2">
+            <input type="text" id="filmTitle" class="form-control" placeholder="Film Title" required>
+        </div>
+
+        <div class="mb-2">
+            <input type="number" id="yearOfRelease" class="form-control" placeholder="Year of Release" required>
+        </div>
+
+        <div class="mb-2">
+            <input type="text" id="director" class="form-control" placeholder="Director" required>
+        </div>
+
+        <div class="mb-2">
+            <input type="text" id="posterImage" class="form-control" placeholder="Poster Image URL" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="cancelFilmForm()">Cancel</button>
+    </form>
+</div>
+
         <h3 class="mt-4">Products</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>Product ID</th>
-                    <th>Product Name</th>
-                    <th>Price</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Movie Ticket</td>
-                    <td>$10.00</td>
-                    <td>Standard movie ticket</td>
-                </tr>
-            </tbody>
-        </table>
+<table class="table table-bordered searchable bg-white">
+  <thead>
+    <tr>
+      <th>Product ID</th>
+      <th>Name</th>
+      <th>Price</th>
+      <th>Description</th>
+      <th>Image</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="productTableBody"></tbody>
+</table>
+
+<div id="productFormContainer" class="my-4" style="display: none;">
+  <h4 id="productFormTitle">Add New Product</h4>
+  <form id="productForm">
+    <input type="hidden" id="productId">
+
+    <div class="mb-2">
+      <input type="text" id="productName" class="form-control" placeholder="Product Name" required>
+    </div>
+
+    <div class="mb-2">
+      <input type="number" step="0.01" id="productPrice" class="form-control" placeholder="Price" required>
+    </div>
+
+    <div class="mb-2">
+      <textarea id="productDescription" class="form-control" placeholder="Description" required></textarea>
+    </div>
+
+    <div class="mb-2">
+      <input type="text" id="productImage" class="form-control" placeholder="Image URL (optional)">
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" onclick="cancelProductForm()">Cancel</button>
+  </form>
+</div>
+
         
         <h3 class="mt-4">Locations</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>Location ID</th>
-                    <th>Address</th>
-                    <th>Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>123 Main St</td>
-                    <td>Downtown Cinema</td>
-                </tr>
-            </tbody>
-        </table>
+<table class="table table-bordered searchable bg-white">
+  <thead>
+    <tr>
+      <th>Location ID</th>
+      <th>Name</th>
+      <th>Address</th>
+      <th>Image</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="locationTableBody"></tbody>
+</table>
+
+<div id="locationFormContainer" class="my-4" style="display: none;">
+  <h4 id="locationFormTitle">Add New Location</h4>
+  <form id="locationForm">
+    <input type="hidden" id="locationId">
+
+    <div class="mb-2">
+      <input type="text" id="locationName" class="form-control" placeholder="Location Name" required>
+    </div>
+
+    <div class="mb-2">
+      <input type="text" id="locationAddress" class="form-control" placeholder="Location Address" required>
+    </div>
+
+    <div class="mb-2">
+      <input type="text" id="locationImage" class="form-control" placeholder="Image URL (optional)">
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" onclick="cancelLocationForm()">Cancel</button>
+  </form>
+</div>
+
         
         <h3 class="mt-4">Screenings</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>Screening ID</th>
-                    <th>Film ID</th>
-                    <th>Location ID</th>
-                    <th>Screening Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>2025-03-30 18:00</td>
-                </tr>
-            </tbody>
-        </table>
+<table class="table table-bordered searchable bg-white">
+  <thead>
+    <tr>
+      <th>Screening ID</th>
+      <th>Title</th>
+      <th>Year</th>
+      <th>Time</th>
+      <th>Image</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="screeningTableBody"></tbody>
+</table>
+
+<div id="screeningFormContainer" class="my-4" style="display: none;">
+  <h4 id="screeningFormTitle">Add New Screening</h4>
+  <form id="screeningForm">
+    <input type="hidden" id="screeningId">
+
+    <div class="mb-2">
+      <input type="text" id="screeningTitle" class="form-control" placeholder="Screening Title" required>
+    </div>
+
+    <div class="mb-2">
+      <input type="number" id="yearOfReleaseScreening" class="form-control" placeholder="Year of Release" required>
+    </div>
+
+    <div class="mb-2">
+      <input type="datetime-local" id="screeningTime" class="form-control" required>
+    </div>
+
+    <div class="mb-2">
+      <input type="text" id="screeningImage" class="form-control" placeholder="Image URL">
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <button type="button" class="btn btn-secondary" onclick="cancelScreeningForm()">Cancel</button>
+  </form>
+</div>
+
         
         <h3 class="mt-4">Payments</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>Payment ID</th>
-                    <th>User ID</th>
-                    <th>Amount</th>
-                    <th>Payment Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>$10.00</td>
-                    <td>2025-03-25</td>
-                </tr>
-            </tbody>
-        </table>
+<table class="table table-bordered searchable bg-white">
+    <thead>
+        <tr>
+            <th>Payment ID</th>
+            <th>User ID</th>
+            <th>Amount</th>
+            <th>Payment Date</th>
+        </tr>
+    </thead>
+    <tbody id="paymentTableBody"></tbody>
+</table>
+
         
         <h3 class="mt-4">User Purchases</h3>
         <table class="table table-bordered searchable bg-white">
@@ -174,3 +270,64 @@
         });
     });
 </script>
+<script>
+async function loadFilmsAdmin() {
+    const films = await filmService.getAllFilms();
+    const tableBody = document.getElementById("filmTableBody");
+    tableBody.innerHTML = "";
+
+    films.forEach(film => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${film.filmId}</td>
+            <td>${film.filmTitle}</td>
+            <td>${film.yearOfRelease}</td>
+            <td>${film.director}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick='editFilm(${JSON.stringify(film)})'>Edit</button>
+                <button class="btn btn-sm btn-danger" onclick='deleteFilm(${film.filmId})'>Delete</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Load films on page load
+document.addEventListener("DOMContentLoaded", loadFilmsAdmin);
+</script>
+<script>
+function showAddFilmForm() {
+    document.getElementById("filmFormTitle").innerText = "Add New Film";
+    document.getElementById("filmFormContainer").style.display = "block";
+    document.getElementById("filmForm").reset();
+    document.getElementById("filmId").value = "";
+}
+
+function cancelFilmForm() {
+    document.getElementById("filmFormContainer").style.display = "none";
+}
+</script>
+<script>
+document.getElementById("filmForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const filmData = {
+        filmTitle: document.getElementById("filmTitle").value,
+        yearOfRelease: document.getElementById("yearOfRelease").value,
+        director: document.getElementById("director").value,
+        posterImage: document.getElementById("posterImage").value
+    };
+
+    const filmId = document.getElementById("filmId").value;
+
+    if (filmId) {
+        await filmService.updateFilm(filmId, filmData);
+    } else {
+        await filmService.createFilm(filmData);
+    }
+
+    cancelFilmForm();
+    loadFilmsAdmin();
+});
+</script>
+

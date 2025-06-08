@@ -9,6 +9,7 @@ class ProductService {
     }
 
     public function getAll() {
+        // Already includes isSold via overridden DAO method
         return $this->dao->getAll();
     }
 

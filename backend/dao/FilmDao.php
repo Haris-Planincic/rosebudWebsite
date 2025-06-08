@@ -3,7 +3,7 @@ require_once 'BaseDao.php';
 
 class FilmDao extends BaseDao {
     public function __construct() {
-        parent::__construct("Films");
+        parent::__construct("Films", "filmId");
     }
 
     public function getById($id, $primaryKey = 'filmId') {

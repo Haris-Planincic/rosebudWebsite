@@ -1,79 +1,73 @@
-        <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">SCREENINGS</h1>
-                </div>
+<!-- Header -->
+<header class="bg-dark py-5">
+  <div class="container px-4 px-lg-5 my-5">
+    <div class="text-center text-white">
+      <h1 class="display-4 fw-bolder">SCREENINGS</h1>
+    </div>
+  </div>
+</header>
+
+<!-- Section -->
+<section class="py-5">
+  <div class="container px-4 px-lg-5 mt-5">
+    <div class="mb-4 text-center">
+      <input type="text" id="searchScreeningBar" class="form-control" placeholder="Search for a screening...">
+    </div>
+    <div id="screening-list" class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+      <!-- Screenings will be injected here -->
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-5 bg-dark">
+  <div class="container">
+    <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
+  </div>
+</footer>
+
+<!-- jQuery if not already loaded -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Screenings rendering script -->
+<script>
+  async function renderScreenings() {
+    const screenings = await screeningService.getAllScreenings();
+    const container = document.getElementById("screening-list");
+    container.innerHTML = "";
+
+    screenings.forEach(screening => {
+      const dt = new Date(screening.screeningTime);
+      const date = dt.toLocaleDateString('en-GB');
+      const time = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const card = document.createElement("div");
+      card.className = "col mb-5 screening";
+      card.innerHTML = `
+        <div class="card h-100">
+          <img class="card-img-top" src="${screening.screeningImage || './assets/images/default-poster.jpg'}" alt="${screening.screeningTitle}" />
+          <div class="card-body p-4">
+            <div class="text-center">
+              <h5 class="fw-bolder">${screening.screeningTitle} (${screening.yearOfRelease})</h5>
+              ${date}, ${time}
             </div>
-        </header>
-        <section class="py-5">
-            <div class="container px-4 px-lg-5 mt-5">
-                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top poster-img" src="./assets/images/the400blows.jpg" alt="The 400 Blows" />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">The 400 Blows (1959)</h5>
-                                    <!-- Product price-->
-                                    Beacon Theatre, 14/04/2025, 14:30
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top poster-img" src="./assets/images/cinemaparadiso.jpg" alt="Cinema Paradiso" />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">Cinema Paradiso (1988)</h5>
-                                    <!-- Product price-->
-                                    Beacon Theatre, 15/04/2025, 14:30
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top poster-img" src="./assets/images/Yojimbo_poster.jpg" alt="Yojimbo" />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">Yojimbo (1961)</h5>
-                                    <!-- Product price-->
-                                    Beacon Theatre, 17/04/2025, 12:30
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div><div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top poster-img" src="./assets/images/stopmakingsense.jpg" alt="Stop Making Sense" />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">Stop Making Sense (1984)</h5>
-                                    <!-- Product price-->
-                                    Beacon Theatre, 20/04/2025, 15:00
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <footer class="py-5 bg-dark">
-                <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p></div>
-              </footer>
-   
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  $(document).ready(() => {
+    renderScreenings();
+
+    // Live search for screenings
+    $('#searchScreeningBar').on('keyup', function () {
+      const input = this.value.toLowerCase();
+      $('.screening').each(function () {
+        const title = $(this).find("h5").text().toLowerCase();
+        $(this).toggle(title.includes(input));
+      });
+    });
+  });
+</script>

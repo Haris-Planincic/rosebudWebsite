@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../data/roles.php";
 /**
  * @OA\Get(
  *     path="/payments",
@@ -10,7 +11,8 @@
  *     )
  * )
  */
-Flight::route('GET /payments', function(){
+Flight::route('GET /payments', function() {
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::paymentService()->getAll());
 });
 /**
@@ -31,21 +33,21 @@ Flight::route('GET /payments', function(){
  *     )
  * )
  */
-Flight::route('GET /payments/@id', function($id){
+Flight::route('GET /payments/@id', function($id) {
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::paymentService()->getById($id));
 });
 /**
  * @OA\Post(
  *     path="/payments",
  *     tags={"payments"},
- *     summary="Make a new payment",
+ *     summary="Create a payment for a product",
+ *     security={{"bearerAuth":{}}},
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             required={"user_id", "amount", "method"},
- *             @OA\Property(property="user_id", type="integer", example=1),
- *             @OA\Property(property="amount", type="number", format="float", example=59.99),
- *             @OA\Property(property="method", type="string", example="credit_card")
+ *             required={"productId"},
+ *             @OA\Property(property="productId", type="integer", example=2)
  *         )
  *     ),
  *     @OA\Response(
@@ -54,10 +56,23 @@ Flight::route('GET /payments/@id', function($id){
  *     )
  * )
  */
-Flight::route('POST /payments', function(){
+Flight::route('POST /payments', function() {
+    Flight::auth_middleware()->authorizeRoles([Roles::USER, Roles::ADMIN]);
+
+    $payload = Flight::get('user'); 
+    $userId = $payload->userId;
+
     $data = Flight::request()->data->getData();
+
+    if (!isset($data['productId'])) {
+        Flight::halt(400, "Missing productId.");
+    }
+
+    $data['userId'] = $userId;
+
     Flight::json(Flight::paymentService()->create($data));
 });
+
 /**
  * @OA\Put(
  *     path="/payments/{paymentId}",
@@ -83,7 +98,8 @@ Flight::route('POST /payments', function(){
  *     )
  * )
  */
-Flight::route('PUT /payments/@id', function($id){
+Flight::route('PUT /payments/@id', function($id) {
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     $data = Flight::request()->data->getData();
     Flight::json(Flight::paymentService()->update($id, $data));
 });
@@ -105,6 +121,7 @@ Flight::route('PUT /payments/@id', function($id){
  *     )
  * )
  */
-Flight::route('DELETE /payments/@id', function($id){
+Flight::route('DELETE /payments/@id', function($id) {
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::paymentService()->delete($id));
 });

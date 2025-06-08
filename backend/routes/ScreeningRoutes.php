@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../data/roles.php";
 /**
  * @OA\Get(
  *     path="/screenings",
@@ -10,7 +11,7 @@
  *     )
  * )
  */
-Flight::route('GET /screenings', function(){
+Flight::route('GET /screenings', function() {
     Flight::json(Flight::screeningService()->getAll());
 });
 /**
@@ -31,7 +32,8 @@ Flight::route('GET /screenings', function(){
  *     )
  * )
  */
-Flight::route('GET /screenings/@id', function($id){
+Flight::route('GET /screenings/@id', function($id) {
+    Flight::auth_middleware()->authorizeRoles([Roles::USER, Roles::ADMIN]);
     Flight::json(Flight::screeningService()->getById($id));
 });
 /**
@@ -42,10 +44,11 @@ Flight::route('GET /screenings/@id', function($id){
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             required={"film_id", "location_id", "start_time"},
- *             @OA\Property(property="film_id", type="integer", example=1),
- *             @OA\Property(property="location_id", type="integer", example=2),
- *             @OA\Property(property="start_time", type="string", format="date-time", example="2025-05-25T20:00:00Z")
+ *             required={"screeningTitle", "yearOfRelease", "screeningTime", "screeningImage"},
+ *             @OA\Property(property="screeningTitle", type="string", example="Yojimbo"),
+ *             @OA\Property(property="yearOfRelease", type="integer", example=1961),
+ *             @OA\Property(property="screeningTime", type="string", format="date-time", example="2025-04-17T12:30:00Z"),
+ *             @OA\Property(property="screeningImage", type="string", example="/assets/images/yojimbo.jpg")
  *         )
  *     ),
  *     @OA\Response(
@@ -54,7 +57,12 @@ Flight::route('GET /screenings/@id', function($id){
  *     )
  * )
  */
-Flight::route('POST /screenings', function(){
+
+Flight::route('POST /screenings', function() {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     $data = Flight::request()->data->getData();
     Flight::json(Flight::screeningService()->create($data));
 });
@@ -84,7 +92,11 @@ Flight::route('POST /screenings', function(){
  *     )
  * )
  */
-Flight::route('PUT /screenings/@id', function($id){
+Flight::route('PUT /screenings/@id', function($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     $data = Flight::request()->data->getData();
     Flight::json(Flight::screeningService()->update($id, $data));
 });
@@ -106,6 +118,10 @@ Flight::route('PUT /screenings/@id', function($id){
  *     )
  * )
  */
-Flight::route('DELETE /screenings/@id', function($id){
+Flight::route('DELETE /screenings/@id', function($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::screeningService()->delete($id));
 });

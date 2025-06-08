@@ -1,22 +1,16 @@
 <?php
-require_once __DIR__ . '/../middleware/AuthMiddleware.php'; // ensure this is loaded
+require_once __DIR__ . '/../data/roles.php';
 
 /**
  * @OA\Get(
  *     path="/users",
  *     tags={"users"},
  *     summary="Get all users",
- *     @OA\Response(
- *         response=200,
- *         description="List of all users"
- *     )
+ *     @OA\Response(response=200, description="List of all users")
  * )
  */
-Flight::route('GET /users', function(){
-    $auth = new AuthMiddleware();
-    $auth->verifyToken(Flight::request()->getHeader('Authorization') ? preg_replace('/Bearer\s/', '', Flight::request()->getHeader('Authorization')) : null);
-    $auth->authorizeRole('admin'); // Only admin can get all users
-
+Flight::route('GET /users', function () {
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::userService()->getAll());
 });
 
@@ -25,29 +19,12 @@ Flight::route('GET /users', function(){
  *     path="/users/{userId}",
  *     tags={"users"},
  *     summary="Get user by ID",
- *     @OA\Parameter(
- *         name="userId",
- *         in="path",
- *         required=true,
- *         description="ID of the user",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Details of a specific user"
- *     )
+ *     @OA\Parameter(name="userId", in="path", required=true, @OA\Schema(type="integer")),
+ *     @OA\Response(response=200, description="Details of a specific user")
  * )
  */
-Flight::route('GET /users/@id', function($id){
-    $auth = new AuthMiddleware();
-    $auth->verifyToken(Flight::request()->getHeader('Authorization') ? preg_replace('/Bearer\s/', '', Flight::request()->getHeader('Authorization')) : null);
-    $user = Flight::get('user');
-
-    // Users can get their own info, admins can get anyone's info
-    if ($user->role !== 'admin' && $user->userId != $id) {
-        Flight::halt(403, 'Access denied');
-    }
-
+Flight::route('GET /users/@id', function ($id) {
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::userService()->getById($id));
 });
 
@@ -55,89 +32,89 @@ Flight::route('GET /users/@id', function($id){
  * @OA\Post(
  *     path="/users",
  *     tags={"users"},
- *     summary="Add a new user",
+ *     summary="Register a new user",
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
  *             required={"firstName", "lastName", "email", "password"},
- *             @OA\Property(property="firstName", type="string", example="John"),
- *             @OA\Property(property="lastName", type="string", example="Doe"),
- *             @OA\Property(property="email", type="string", example="john.doe@example.com"),
- *             @OA\Property(property="password", type="string", example="securepassword"),
- *             @OA\Property(property="role", type="string", example="user")
+ *             @OA\Property(property="firstName", type="string"),
+ *             @OA\Property(property="lastName", type="string"),
+ *             @OA\Property(property="email", type="string"),
+ *             @OA\Property(property="password", type="string"),
+ *             @OA\Property(property="role", type="string", default="user")
  *         )
  *     ),
- *     @OA\Response(
- *         response=200,
- *         description="New user created"
- *     )
+ *     @OA\Response(response=200, description="User successfully registered")
  * )
  */
-Flight::route('POST /users', function(){
-    $auth = new AuthMiddleware();
-    $auth->verifyToken(Flight::request()->getHeader('Authorization') ? preg_replace('/Bearer\s/', '', Flight::request()->getHeader('Authorization')) : null);
-    $user = Flight::get('user');
+Flight::route('POST /users', function () {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN); 
 
     $data = Flight::request()->data->getData();
-
-    // If role is set, only allow admin to create users with custom roles
-    if (isset($data['role']) && $user->role !== 'admin') {
-        unset($data['role']); // default role assignment handled in service/dao
-    }
-
-    // Validate required fields
-    if (empty($data['firstName']) || empty($data['lastName']) || empty($data['email']) || empty($data['password'])) {
-        Flight::halt(400, "Missing required user fields");
+    if (!empty($data['password'])) {
+        $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
     }
 
     Flight::json(Flight::userService()->create($data));
+});
+/**
+ * @OA\Post(
+ *     path="/auth/register",
+ *     tags={"auth"},
+ *     summary="Public user registration",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"firstName", "lastName", "email", "password"},
+ *             @OA\Property(property="firstName", type="string"),
+ *             @OA\Property(property="lastName", type="string"),
+ *             @OA\Property(property="email", type="string"),
+ *             @OA\Property(property="password", type="string")
+ *         )
+ *     ),
+ *     @OA\Response(response=200, description="User registered")
+ * )
+ */
+Flight::route('POST /auth/register', function () {
+    $data = Flight::request()->data->getData();
+
+    $response = Flight::auth_service()->register($data);
+
+    if ($response['success']) {
+        Flight::json(['message' => 'User registered successfully', 'data' => $response['data']]);
+    } else {
+        Flight::halt(400, $response['error']);
+    }
 });
 
 /**
  * @OA\Put(
  *     path="/users/{userId}",
  *     tags={"users"},
- *     summary="Update an existing user",
- *     @OA\Parameter(
- *         name="userId",
- *         in="path",
- *         required=true,
- *         description="ID of the user",
- *         @OA\Schema(type="integer")
- *     ),
+ *     summary="Update a user",
+ *     @OA\Parameter(name="userId", in="path", required=true, @OA\Schema(type="integer")),
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             @OA\Property(property="firstName", type="string", example="Jane"),
- *             @OA\Property(property="lastName", type="string", example="Doe"),
- *             @OA\Property(property="email", type="string", example="jane.doe@example.com"),
- *             @OA\Property(property="password", type="string", example="newsecurepassword"),
- *             @OA\Property(property="role", type="string", example="admin")
+ *             @OA\Property(property="firstName", type="string"),
+ *             @OA\Property(property="lastName", type="string"),
+ *             @OA\Property(property="email", type="string"),
+ *             @OA\Property(property="password", type="string"),
+ *             @OA\Property(property="role", type="string")
  *         )
  *     ),
- *     @OA\Response(
- *         response=200,
- *         description="User updated"
- *     )
+ *     @OA\Response(response=200, description="User updated")
  * )
  */
-Flight::route('PUT /users/@id', function($id){
-    $auth = new AuthMiddleware();
-    $auth->verifyToken(Flight::request()->getHeader('Authorization') ? preg_replace('/Bearer\s/', '', Flight::request()->getHeader('Authorization')) : null);
-    $user = Flight::get('user');
-
-    // Only admin or the user themselves can update
-    if ($user->role !== 'admin' && $user->userId != $id) {
-        Flight::halt(403, 'Access denied');
-    }
-
+Flight::route('PUT /users/@id', function ($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
     $data = Flight::request()->data->getData();
-
-    // Only admin can change role
-    if (isset($data['role']) && $user->role !== 'admin') {
-        unset($data['role']);
-    }
-
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::userService()->update($id, $data));
 });
 
@@ -146,29 +123,14 @@ Flight::route('PUT /users/@id', function($id){
  *     path="/users/{userId}",
  *     tags={"users"},
  *     summary="Delete a user",
- *     @OA\Parameter(
- *         name="userId",
- *         in="path",
- *         required=true,
- *         description="ID of the user",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="User deleted"
- *     )
+ *     @OA\Parameter(name="userId", in="path", required=true, @OA\Schema(type="integer")),
+ *     @OA\Response(response=200, description="User deleted")
  * )
  */
-Flight::route('DELETE /users/@id', function($id){
-    $auth = new AuthMiddleware();
-    $auth->verifyToken(Flight::request()->getHeader('Authorization') ? preg_replace('/Bearer\s/', '', Flight::request()->getHeader('Authorization')) : null);
-    $user = Flight::get('user');
-
-    // Only admins can delete users
-    if ($user->role !== 'admin') {
-        Flight::halt(403, 'Access denied');
-    }
-
-    Flight::json(Flight::userService()->delete($id));
+Flight::route('DELETE /users/@id', function ($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+    Flight::json(["success" => Flight::userService()->delete($id)]);
 });
-

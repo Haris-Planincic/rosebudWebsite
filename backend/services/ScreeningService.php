@@ -17,7 +17,7 @@ class ScreeningService {
     }
 
     public function create($data) {
-        if (!isset($data['filmId'], $data['locationId'], $data['screeningTime'])) {
+        if (!isset($data['screeningTitle'], $data['screeningTime'], $data['yearOfRelease'])) {
             throw new Exception("Missing screening data.");
         }
 
@@ -37,4 +37,3 @@ class ScreeningService {
     }
 }
 ?>
-

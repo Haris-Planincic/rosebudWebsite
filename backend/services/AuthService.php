@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../dao/AuthDao.php';
+
+
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 class AuthService {
     private $dao;
@@ -15,56 +16,57 @@ class AuthService {
     }
 
     public function register($data) {
+    if (empty($data['firstName']) || empty($data['lastName']) || empty($data['email']) || empty($data['password'])) {
+        return ['success' => false, 'error' => 'Email and password are required.'];
+    }
+
+    // Check if email already exists
+    $existingUser = $this->dao->get_user_by_email($data['email']);
+    if ($existingUser) {
+        return ['success' => false, 'error' => 'Email already registered.'];
+    }
+
+    // Set default role
+    $data['role'] = 'user'; // 👈 Add this line
+
+    // Hash password
+    $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+
+    // Insert new user
+    $insertSuccess = $this->dao->insert($data);
+    if (!$insertSuccess) {
+        return ['success' => false, 'error' => 'Failed to register user.'];
+    }
+
+    unset($data['password']); 
+
+    return ['success' => true, 'data' => ['email' => $data['email']]];
+}
+
+
+    public function login($data) {
         if (empty($data['email']) || empty($data['password'])) {
             return ['success' => false, 'error' => 'Email and password are required.'];
         }
 
-        if ($this->dao->get_user_by_email($data['email'])) {
-            return ['success' => false, 'error' => 'Email already registered.'];
+        $user = $this->dao->get_user_by_email($data['email']);
+        if (!$user || !password_verify($data['password'], $user['password'])) {
+            return ['success' => false, 'error' => 'Invalid username or password.'];
         }
 
-        $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+        unset($user['password']);
 
-        $newUser = $this->dao->insert($data);
+        $payload = [
+            'user' => $user,
+            'iat' => time(),
+            'exp' => time() + (60 * 60 * 24) // 24 hours
+        ];
 
-        unset($newUser['password']);
+        $token = JWT::encode($payload, Config::JWT_SECRET(), 'HS256');
 
-        return ['success' => true, 'data' => $newUser];
+        return [
+            'success' => true,
+            'data' => array_merge($user, ['token' => $token])
+        ];
     }
-
-    public function login($data) {
-    if (empty($data['email']) || empty($data['password'])) {
-        return ['success' => false, 'error' => 'Email and password are required.'];
-    }
-
-    $user = $this->dao->get_user_by_email($data['email']);
-
-    if (!$user) {
-        return ['success' => false, 'error' => 'User not found.'];
-    }
-
-    // Debug print
-    error_log("User fetched for login: " . json_encode($user));
-
-    if (!password_verify($data['password'], $user['password'])) {
-        return ['success' => false, 'error' => 'Invalid password.'];
-    }
-
-    unset($user['password']);
-
-    $payload = [
-        'user' => $user,
-        'iat' => time(),
-        'exp' => time() + 86400,
-    ];
-
-    $token = JWT::encode($payload, Config::JWT_SECRET(), 'HS256');
-
-    // Debug print token
-    error_log("JWT token generated: " . $token);
-
-    return ['success' => true, 'data' => array_merge($user, ['token' => $token])];
 }
-}
-
-

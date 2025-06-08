@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../data/roles.php";
 /**
  * @OA\Get(
  *     path="/locations",
@@ -10,7 +11,7 @@
  *     )
  * )
  */
-Flight::route('GET /locations', function(){
+Flight::route('GET /locations', function() {
     Flight::json(Flight::locationService()->getAll());
 });
 /**
@@ -31,7 +32,8 @@ Flight::route('GET /locations', function(){
  *     )
  * )
  */
-Flight::route('GET /locations/@id', function($id){
+Flight::route('GET /locations/@id', function($id) {
+    Flight::auth_middleware()->authorizeRoles([Roles::USER, Roles::ADMIN]);
     Flight::json(Flight::locationService()->getById($id));
 });
 /**
@@ -54,11 +56,14 @@ Flight::route('GET /locations/@id', function($id){
  * )
  */
 Flight::route('POST /locations', function(){
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     $data = Flight::request()->data->getData();
     Flight::json(Flight::locationService()->create($data));
 });
-/**
- * @OA\Put(
+/**  * @OA\Put(
  *     path="/locations/{locationId}",
  *     tags={"locations"},
  *     summary="Update a location",
@@ -81,7 +86,11 @@ Flight::route('POST /locations', function(){
  *     )
  * )
  */
-Flight::route('PUT /locations/@id', function($id){
+Flight::route('PUT /locations/@id', function($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     $data = Flight::request()->data->getData();
     Flight::json(Flight::locationService()->update($id, $data));
 });
@@ -103,6 +112,10 @@ Flight::route('PUT /locations/@id', function($id){
  *     )
  * )
  */
-Flight::route('DELETE /locations/@id', function($id){
+Flight::route('DELETE /locations/@id', function($id) {
+    $authHeader = Flight::request()->getHeader("Authorization");
+    $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
+    Flight::auth_middleware()->verifyToken($token);
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::locationService()->delete($id));
 });

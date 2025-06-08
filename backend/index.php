@@ -2,7 +2,10 @@
 
 require '../vendor/autoload.php';
 
-require_once __DIR__ . '/./services/AuthService.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/./services/FilmService.php';
 require_once __DIR__ . '/./services/LocationService.php';
 require_once __DIR__ . '/./services/PaymentService.php';
@@ -10,9 +13,10 @@ require_once __DIR__ . '/./services/ProductService.php';
 require_once __DIR__ . '/./services/ScreeningService.php';
 require_once __DIR__ . '/./services/UserPurchaseService.php';
 require_once __DIR__ . '/./services/UserService.php';
-require_once __DIR__ . '/middleware/AuthMiddleware.php';  // Add middleware require here
+require_once __DIR__ . '/./services/AuthService.php';
+require_once __DIR__ . '/./dao/config.php';
+require_once __DIR__ . '/./middleware/AuthMiddleware.php';
 
-use Flight;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -25,53 +29,42 @@ Flight::register('screeningService', 'ScreeningService');
 Flight::register('purchaseService', 'UserPurchaseService');
 Flight::register('userService', 'UserService');
 Flight::register('auth_service', 'AuthService');
-
-// Register middleware service
 Flight::register('auth_middleware', 'AuthMiddleware');
 
-Flight::set('flight.log_errors', true);
-
-// JWT Middleware to protect routes except /auth/login and /auth/register
+// Middleware for JWT verification
 Flight::route('/*', function () {
     $url = Flight::request()->url;
+    $method = Flight::request()->method;
 
-    // Skip auth check for login and register routes
-    if (strpos($url, '/auth/login') === 0 || strpos($url, '/auth/register') === 0) {
-        return; // allow through
+    // Publicly accessible routes
+    if (
+        ($method === 'POST' && $url === '/users') ||  // allow registration
+        strpos($url, '/auth/login') === 0 ||
+        strpos($url, '/auth/register') === 0 ||
+
+        // Public GET routes
+        ($method === 'GET' && (
+            preg_match('#^/films(/\d+)?$#', $url) ||
+            preg_match('#^/locations(/\d+)?$#', $url) ||
+            preg_match('#^/screenings(/\d+)?$#', $url) ||
+            preg_match('#^/products(/\d+)?$#', $url)
+        ))
+    ) {
+        return true;
     }
 
-    // Get Authorization header (should be "Bearer <token>")
-    $authHeader = Flight::request()->getHeader('Authorization');
-    if (!$authHeader) {
-        Flight::json(['error' => 'Missing Authorization header'], 401);
-        Flight::stop();
-    }
-
-    if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        $token = $matches[1];
-    } else {
-        Flight::json(['error' => 'Malformed Authorization header'], 401);
-        Flight::stop();
-    }
-
+    // All other routes require a valid JWT token
     try {
-        // Use your AuthMiddleware to verify token instead of direct JWT decode
-        if (!Flight::auth_middleware()->verifyToken($token)) {
-            Flight::json(['error' => 'Invalid or expired token'], 401);
-            Flight::stop();
+        $token = Flight::request()->getHeader("Authentication");
+        if (Flight::auth_middleware()->verifyToken($token)) {
+            return true;
         }
-
-        // Optionally decode token and store user info in Flight
-        $decoded = JWT::decode($token, new Key(Config::JWT_SECRET(), 'HS256'));
-        Flight::set('user', $decoded->user);
-        Flight::set('jwt_token', $token);
     } catch (Exception $e) {
-        Flight::json(['error' => 'Token verification failed: ' . $e->getMessage()], 401);
-        Flight::stop();
+        Flight::halt(401, $e->getMessage());
     }
 });
 
-// Load routes
+// Load route files
 require_once __DIR__ . '/./routes/FilmRoutes.php';
 require_once __DIR__ . '/./routes/LocationRoutes.php';
 require_once __DIR__ . '/./routes/PaymentRoutes.php';
@@ -81,6 +74,7 @@ require_once __DIR__ . '/./routes/UserPurchaseRoutes.php';
 require_once __DIR__ . '/./routes/UserRoutes.php';
 require_once __DIR__ . '/./routes/AuthRoutes.php';
 
+// Default route
 Flight::route('/', function () {
     echo 'API is running';
 });
