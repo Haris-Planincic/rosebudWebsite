@@ -29,8 +29,8 @@ class Config {
     public static function JWT_SECRET() {
         return Config::get_env("JWT_SECRET", "your_key_string");
     }
-    public static function STRIPE_SECRET_KEY() { return 'REDACTED'; }
-    public static function STRIPE_WEBHOOK_SECRET() { return 'REDACTED'; }
+    public static function STRIPE_SECRET_KEY() { return 'SECRET'; }
+    public static function STRIPE_WEBHOOK_SECRET() { return 'SECRET'; }
     public static function MAIL_HOST() {
     return 'sandbox.smtp.mailtrap.io'; 
 }
