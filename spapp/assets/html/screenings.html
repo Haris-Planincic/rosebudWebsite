@@ -1,4 +1,3 @@
-<!-- Header -->
 <header class="bg-dark py-5">
   <div class="container px-4 px-lg-5 my-5">
     <div class="text-center text-white">
@@ -7,67 +6,292 @@
   </div>
 </header>
 
-<!-- Section -->
 <section class="py-5">
   <div class="container px-4 px-lg-5 mt-5">
-    <div class="mb-4 text-center">
-      <input type="text" id="searchScreeningBar" class="form-control" placeholder="Search for a screening...">
-    </div>
-    <div id="screening-list" class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-      <!-- Screenings will be injected here -->
-    </div>
+
+  <!-- Search -->
+  <div class="mb-4 text-center">
+    <input
+      type="text"
+      id="screeningSearchBar"
+      class="form-control"
+      placeholder="Search screenings..."
+      autocomplete="off"
+    >
   </div>
+
+  <!-- Screenings grid -->
+  <div
+    id="screening-list"
+    class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-2 row-cols-xl-3 justify-content-center"
+  ></div>
+
+</div>
+
 </section>
 
-<!-- Footer -->
 <footer class="py-5 bg-dark">
   <div class="container">
     <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
   </div>
 </footer>
 
-<!-- jQuery if not already loaded -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Screenings rendering script -->
 <script>
-  async function renderScreenings() {
-    const screenings = await screeningService.getAllScreenings();
-    const container = document.getElementById("screening-list");
-    container.innerHTML = "";
+  console.log("SCREENINGS PAGE SCRIPT LOADED ✅", new Date().toISOString());
 
-    screenings.forEach(screening => {
-      const dt = new Date(screening.screeningTime);
-      const date = dt.toLocaleDateString('en-GB');
-      const time = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const STRIPE_PUBLISHABLE_KEY = "pk_test_51Sq16QFD4yDFFH6VTXLqqfunPtYWjQp7y57AFljPwe0GRdJ46Ad3jhIisbe7EupPIzcAylF7tZNlRiBtQMXVm6Vi00IbFeXSap";
+  const BACKEND_BASE = "http://localhost/webprogramming2025-milestone2/backend";
 
-      const card = document.createElement("div");
-      card.className = "col mb-5 screening";
-      card.innerHTML = `
-        <div class="card h-100">
-          <img class="card-img-top" src="${screening.screeningImage || './assets/images/default-poster.jpg'}" alt="${screening.screeningTitle}" />
+  // One Stripe instance reused
+  let stripeone = null;
+
+  // per-screening state
+  const checkoutState = new Map();
+
+  function safeText(v) {
+    return (v === null || v === undefined) ? "" : String(v);
+  }
+
+  function formatDateTime(val) {
+    return safeText(val);
+  }
+
+  function renderScreeningsList(screenings) {
+  const container = document.getElementById("screening-list");
+  container.innerHTML = "";
+
+  screenings
+    .filter(s => {
+      const cap = s.capacity != null ? Number(s.capacity) : null;
+      const booked = s.bookedCount != null ? Number(s.bookedCount) : 0;
+      if (cap === null) return true;
+      return booked < cap;
+    })
+    .forEach(s => {
+      const screeningId = Number(s.screeningId);
+      const title = safeText(s.screeningTitle);
+      const year = safeText(s.yearOfRelease);
+      const time = formatDateTime(s.screeningTime);
+      const image = safeText(s.screeningImage);
+      const capacity = s.capacity != null ? Number(s.capacity) : null;
+      const booked = s.bookedCount != null ? Number(s.bookedCount) : 0;
+
+      const col = document.createElement("div");
+      col.className = "col mb-5 screening";
+      col.innerHTML = `
+        <div class="card h-100" data-screening-id="${screeningId}">
+          <img class="card-img-top"
+               src="${BACKEND_BASE}/${image}"
+               alt="${title}"
+               style="height: 260px; object-fit: cover;" />
+
           <div class="card-body p-4">
             <div class="text-center">
-              <h5 class="fw-bolder">${screening.screeningTitle} (${screening.yearOfRelease})</h5>
-              ${date}, ${time}
+              <h5 class="fw-bolder">${title}</h5>
+              <div class="text-muted">${year}</div>
+              <div class="text-muted">${time}</div>
+              ${capacity !== null ? `
+                <div class="text-muted mt-2">
+                  Capacity: <strong>${booked} / ${capacity}</strong>
+                </div>
+              ` : ``}
+            </div>
+          </div>
+
+          <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+            <div class="text-center">
+              <button class="btn btn-success mt-auto book-btn" type="button">Book</button>
+            </div>
+
+            <div class="checkoutSection mt-3" style="display:none;">
+              <div class="small text-muted mb-2">Demo checkout (Stripe test mode)</div>
+
+              <div class="payment-element"
+                   style="border:1px solid #e5e5e5; border-radius:8px; padding:12px;"></div>
+
+              <button class="btn btn-primary mt-3 pay-btn w-100" disabled>Pay</button>
+
+              <div class="paymentMessage mt-2"></div>
             </div>
           </div>
         </div>
       `;
-      container.appendChild(card);
+      container.appendChild(col);
     });
+}
+
+async function loadScreeningsFromBackend(query = "") {
+  if (typeof window.screeningService === "undefined") {
+    console.error("screeningService is NOT loaded on this view.");
+    return;
+  }
+  if (typeof window.paymentService === "undefined") {
+    console.error("paymentService is NOT loaded on this view.");
+    return;
   }
 
-  $(document).ready(() => {
-    renderScreenings();
+  // optional: avoid searching on 1 char
+  if (query && query.trim().length < 2) {
+    const all = await screeningService.getAllScreenings();
+    renderScreeningsList(all);
+    return;
+  }
 
-    // Live search for screenings
-    $('#searchScreeningBar').on('keyup', function () {
-      const input = this.value.toLowerCase();
-      $('.screening').each(function () {
-        const title = $(this).find("h5").text().toLowerCase();
-        $(this).toggle(title.includes(input));
+  const results = await screeningService.searchScreenings(query);
+  renderScreeningsList(results);
+}
+
+
+  function getCard(el) {
+    return $(el).closest(".card");
+  }
+
+  function setMessage(card, html, type = "muted") {
+    const msgEl = card.find(".paymentMessage");
+    if (type === "error") msgEl.html(`<div class="alert alert-danger py-2 mb-0">${html}</div>`);
+    else if (type === "success") msgEl.html(`<div class="alert alert-success py-2 mb-0">${html}</div>`);
+    else msgEl.html(`<div class="text-${type}">${html}</div>`);
+  }
+
+  function clearCheckout(card) {
+    const mount = card.find(".payment-element")[0];
+    if (mount) mount.innerHTML = "";
+    card.find(".pay-btn").prop("disabled", true).text("Pay").removeAttr("data-screening-id");
+    card.find(".checkoutSection").hide();
+    card.find(".paymentMessage").html("");
+  }
+
+  $(document).on("click", ".book-btn", async function () {
+    const token = localStorage.getItem("jwt_token");
+    if (!token) {
+      alert("Please log in to book a screening.");
+      window.location.hash = "#login";
+      return;
+    }
+
+    const card = getCard(this);
+    const screeningId = Number(card.data("screening-id"));
+
+    clearCheckout(card);
+    card.find(".checkoutSection").show();
+
+    try {
+      const intentData = await paymentService.createStripeScreeningIntent(screeningId);
+
+      // init stripe once
+      stripeone = stripeone || Stripe(STRIPE_PUBLISHABLE_KEY);
+
+      const mountEl = card.find(".payment-element")[0];
+      mountEl.innerHTML = "";
+
+      const elements = stripeone.elements({ clientSecret: intentData.clientSecret });
+      const paymentElement = elements.create("payment");
+      paymentElement.mount(mountEl);
+
+      checkoutState.set(screeningId, {
+        elements,
+        paymentElement,
+        paymentId: intentData.paymentId,
+        clientSecret: intentData.clientSecret
       });
-    });
+
+      const payBtn = card.find(".pay-btn");
+      payBtn.attr("data-screening-id", screeningId).prop("disabled", true).text("Pay");
+
+      setMessage(card, "Enter card details to continue.", "muted");
+
+      paymentElement.on("change", (e) => {
+        payBtn.prop("disabled", !e.complete);
+        if (e.error) setMessage(card, e.error.message, "error");
+        else setMessage(card, "", "muted");
+      });
+
+    } catch (err) {
+      setMessage(card, err.message || "Failed to start booking.", "error");
+      card.find(".checkoutSection").hide();
+    }
   });
+
+  $(document).on("click", ".pay-btn", async function () {
+    const screeningId = Number($(this).attr("data-screening-id"));
+    const state = checkoutState.get(screeningId);
+    if (!state || !stripeone) return;
+
+    const card = getCard(this);
+    const payBtn = card.find(".pay-btn");
+
+    try {
+      payBtn.prop("disabled", true).text("Processing...");
+      setMessage(card, "Processing payment…", "muted");
+
+      const result = await stripeone.confirmPayment({
+        elements: state.elements,
+        redirect: "if_required"
+      });
+
+      if (result.error) {
+        setMessage(card, result.error.message || "Payment failed.", "error");
+        payBtn.prop("disabled", false).text("Pay");
+        return;
+      }
+
+      setMessage(card, "Payment sent. Waiting for confirmation…", "muted");
+      await waitForPaymentConfirmation(card, state.paymentId);
+
+    } catch {
+      setMessage(card, "Unexpected error confirming payment.", "error");
+      payBtn.prop("disabled", false).text("Pay");
+    }
+  });
+
+  async function waitForPaymentConfirmation(card, paymentId) {
+    const token = localStorage.getItem("jwt_token");
+    if (!token) return;
+
+    const start = Date.now();
+    while (Date.now() - start < 25000) {
+      try {
+        const res = await fetch(`${BACKEND_BASE}/stripe/payment-status/${paymentId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const { status } = await res.json();
+          if (status === "succeeded") {
+            setMessage(card, "✅ Booking confirmed!", "success");
+            card.find(".book-btn").prop("disabled", true).text("Booked");
+            card.find(".pay-btn").prop("disabled", true).text("Paid");
+            card.find(".checkoutSection").hide();
+            return;
+          }
+          if (status === "failed") {
+            setMessage(card, "Payment failed. Please try again.", "error");
+            card.find(".pay-btn").prop("disabled", false).text("Pay");
+            return;
+          }
+        }
+      } catch {}
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+  $(document).ready(() => {
+  // initial load
+  loadScreeningsFromBackend("");
+
+  // backend search with debounce
+  let t = null;
+  $("#screeningSearchBar").on("input", function () {
+    const q = this.value;
+    clearTimeout(t);
+    t = setTimeout(() => {
+      loadScreeningsFromBackend(q);
+    }, 250);
+  });
+});
+
+window.renderScreenings = function () {
+  loadScreeningsFromBackend("");
+};
+
 </script>

@@ -1,0 +1,185 @@
+<div class="container py-4">
+  <!-- Top bar -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">Messages</h2>
+      <div class="text-muted small">Private chats with other users</div>
+    </div>
+
+    <button id="refreshConvosBtn" class="btn btn-sm btn-outline-dark" type="button">
+      Refresh
+    </button>
+  </div>
+
+  <div id="messagesAuthWarning" class="alert alert-warning" style="display:none;">
+    You must be logged in to use messages.
+  </div>
+
+  <div class="row g-3" id="messagesLayout" style="display:none;">
+    <!-- LEFT: sidebar -->
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+          <div class="fw-semibold mb-2">Start a chat</div>
+
+          <div class="position-relative">
+            <input
+              id="chatUserSearch"
+              class="form-control"
+              placeholder="Search users by name..."
+              autocomplete="off"
+            />
+            <div
+              id="userSearchResults"
+              class="list-group position-absolute w-100 mt-2 shadow"
+              style="display:none; max-height: 240px; overflow-y:auto; z-index: 1050;"
+            ></div>
+          </div>
+
+          <div class="text-muted small mt-2">
+            Type at least 2 characters, then click a user.
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between">
+          <span class="fw-semibold">Conversations</span>
+          <span class="badge text-bg-light border">Direct</span>
+        </div>
+
+        <div id="conversationsList" class="list-group list-group-flush messages-convo-list">
+          <div class="p-3 text-muted">No conversations yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: chat panel -->
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm border-0 messages-chat-card">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between">
+          <div class="min-w-0">
+            <div class="fw-semibold text-truncate" id="conversationTitle">Conversation</div>
+            <div class="text-muted small text-truncate" id="conversationSubtitle">
+              Select a conversation to view messages
+            </div>
+          </div>
+
+          <!-- Optional debug badge if you want to keep it (won't break if you don't use it) -->
+          <span class="badge text-bg-light border d-none d-md-inline" id="activeConversationId"></span>
+        </div>
+
+        <div id="chatMessages" class="card-body messages-chat-body">
+          <div class="text-muted">No conversation selected.</div>
+        </div>
+
+        <div class="card-footer bg-white">
+          <form id="sendMessageForm" class="d-flex gap-2 align-items-center">
+            <input
+              id="messageBody"
+              class="form-control"
+              placeholder="Type a message..."
+              autocomplete="off"
+            />
+            <button class="btn btn-dark px-4" type="submit">Send</button>
+          </form>
+          <div class="text-muted small mt-2">Enter to send • Shift+Enter for new line (optional)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fancy UI styles scoped to this page -->
+<style>
+  /* Sidebar */
+  .messages-convo-list button.list-group-item {
+    border: 0;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    padding: 12px 14px;
+    transition: transform .08s ease, background-color .15s ease;
+  }
+  .messages-convo-list button.list-group-item:hover {
+    background: rgba(0,0,0,.03);
+  }
+  .messages-convo-list button.list-group-item.active {
+    background: #111 !important;
+    color: #fff !important;
+  }
+  .messages-convo-list button.list-group-item.active .text-muted {
+    color: rgba(255,255,255,.75) !important;
+  }
+  .messages-convo-list .badge.bg-danger {
+    background: #dc3545 !important;
+  }
+
+  /* Search dropdown */
+  #userSearchResults .list-group-item {
+    border: 0;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    padding: 10px 12px;
+  }
+  #userSearchResults .list-group-item:hover {
+    background: rgba(0,0,0,.03);
+  }
+
+  /* Chat panel */
+  .messages-chat-card {
+    height: calc(100vh - 210px);
+    min-height: 520px;
+  }
+  .messages-chat-body {
+    height: 100%;
+    overflow-y: auto;
+    background:
+      radial-gradient(circle at 20px 20px, rgba(0,0,0,.03) 2px, transparent 2px) 0 0 / 24px 24px,
+      #f8f9fa;
+    padding: 18px;
+  }
+
+  /* Message bubble upgrade (works with your current markup!) */
+  #chatMessages > div.mb-2 {
+    display: flex;
+  }
+  #chatMessages > div.mb-2.text-end {
+    justify-content: flex-end;
+  }
+
+  /* The bubble itself = your d-inline-block element */
+  #chatMessages > div.mb-2 > div.d-inline-block {
+    border: 0 !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    border-radius: 16px !important;
+    padding: 10px 12px !important;
+    max-width: min(75%, 520px);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Other person's bubble */
+  #chatMessages > div.mb-2:not(.text-end) > div.d-inline-block {
+    background: rgba(255,255,255,.85);
+  }
+
+  /* My bubble */
+  #chatMessages > div.mb-2.text-end > div.d-inline-block {
+    background: #111 !important;
+    color: #fff;
+  }
+  #chatMessages > div.mb-2.text-end > div.d-inline-block .text-muted {
+    color: rgba(255,255,255,.70) !important;
+  }
+
+  /* Sender name line */
+  #chatMessages .small.text-muted {
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  /* Slight “tail” illusion using clip-path (subtle, safe) */
+  #chatMessages > div.mb-2:not(.text-end) > div.d-inline-block {
+    border-top-left-radius: 8px !important;
+  }
+  #chatMessages > div.mb-2.text-end > div.d-inline-block {
+    border-top-right-radius: 8px !important;
+  }
+</style>

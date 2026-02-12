@@ -3,7 +3,7 @@ console.log("filmService loaded");
 const filmService = {
     async getAllFilms() {
         try {
-            const response = await fetch("http://localhost/webprogramming2025-milestone1/backend/films", {
+            const response = await fetch("http://localhost/webprogramming2025-milestone2/backend/films", {
                 method: "GET"
             });
             if (!response.ok) throw new Error("Failed to fetch films");
@@ -17,7 +17,7 @@ const filmService = {
     async createFilm(filmData) {
         const token = localStorage.getItem("jwt_token");  
         try {
-            const response = await fetch("http://localhost/webprogramming2025-milestone1/backend/films", {
+            const response = await fetch("http://localhost/webprogramming2025-milestone2/backend/films", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -38,7 +38,7 @@ const filmService = {
     async updateFilm(filmId, filmData) {
         const token = localStorage.getItem("jwt_token");
         try {
-            const response = await fetch(`http://localhost/webprogramming2025-milestone1/backend/films/${filmId}`, {
+            const response = await fetch(`http://localhost/webprogramming2025-milestone2/backend/films/${filmId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -56,7 +56,7 @@ const filmService = {
     async deleteFilm(filmId) {
         const token = localStorage.getItem("jwt_token");
         try {
-            const response = await fetch(`http://localhost/webprogramming2025-milestone1/backend/films/${filmId}`, {
+            const response = await fetch(`http://localhost/webprogramming2025-milestone2/backend/films/${filmId}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${token}`

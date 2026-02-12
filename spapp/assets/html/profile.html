@@ -1,0 +1,57 @@
+<div class="container py-4">
+  <h2 class="mb-4">My Profile</h2>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Profile Info</h5>
+
+          <div class="mb-3">
+            <label class="form-label">First name</label>
+            <input id="pfFirstName" class="form-control" type="text">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Last name</label>
+            <input id="pfLastName" class="form-control" type="text">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input id="pfEmail" class="form-control" type="email">
+          </div>
+
+          <button id="btnSaveProfile" class="btn btn-dark">Save changes</button>
+          <div id="profileMsg" class="mt-3 small"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Change Password</h5>
+
+          <div class="mb-3">
+            <label class="form-label">Current password</label>
+            <input id="pfCurrentPassword" class="form-control" type="password">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">New password</label>
+            <input id="pfNewPassword" class="form-control" type="password">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Confirm new password</label>
+            <input id="pfConfirmPassword" class="form-control" type="password">
+          </div>
+
+          <button id="btnChangePassword" class="btn btn-outline-dark">Change password</button>
+          <div id="passwordMsg" class="mt-3 small"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

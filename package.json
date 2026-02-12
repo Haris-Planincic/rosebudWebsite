@@ -1,0 +1,31 @@
+{
+  "name": "webprogramming2025-milestone2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haris-Planincic/webprogramming.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Haris-Planincic/webprogramming/issues"
+  },
+  "homepage": "https://github.com/Haris-Planincic/webprogramming#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  },
+  
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  }
+
+
+}

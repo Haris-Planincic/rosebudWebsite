@@ -26,7 +26,7 @@ class AuthMiddleware {
     }
 
     public function authorizeRole($requiredRole) {
-        $this->verifyToken(); // 👈 ensure token is loaded
+        $this->verifyToken(); 
         $user = Flight::get('user');
         if (!isset($user->role) || $user->role !== $requiredRole) {
             Flight::halt(403, 'Access denied: insufficient privileges');
@@ -34,7 +34,7 @@ class AuthMiddleware {
     }
 
     public function authorizeRoles($roles) {
-        $this->verifyToken(); // 👈 ensure token is loaded
+        $this->verifyToken(); 
         $user = Flight::get('user');
         if (!isset($user->role) || !in_array($user->role, $roles)) {
             Flight::halt(403, 'Forbidden: role not allowed');
@@ -42,7 +42,7 @@ class AuthMiddleware {
     }
 
     public function authorizePermission($permission) {
-        $this->verifyToken(); // 👈 ensure token is loaded
+        $this->verifyToken();
         $user = Flight::get('user');
         if (!isset($user->permissions) || !in_array($permission, $user->permissions)) {
             Flight::halt(403, 'Access denied: permission missing');

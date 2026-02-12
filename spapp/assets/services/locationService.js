@@ -3,7 +3,7 @@ console.log("locationService loaded");
 const locationService = {
     async getAllLocations() {
         try {
-            const response = await fetch("http://localhost/webprogramming2025-milestone1/backend/locations", {
+            const response = await fetch("http://localhost/webprogramming2025-milestone2/backend/locations", {
                 method: "GET"
             });
             if (!response.ok) throw new Error("Failed to fetch locations");
@@ -17,7 +17,7 @@ const locationService = {
     async createLocation(locationData) {
         try {
             const token = localStorage.getItem("jwt_token");
-            const response = await fetch("http://localhost/webprogramming2025-milestone1/backend/locations", {
+            const response = await fetch("http://localhost/webprogramming2025-milestone2/backend/locations", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -35,7 +35,7 @@ const locationService = {
     async updateLocation(locationId, locationData) {
         try {
             const token = localStorage.getItem("jwt_token");
-            const response = await fetch(`http://localhost/webprogramming2025-milestone1/backend/locations/${locationId}`, {
+            const response = await fetch(`http://localhost/webprogramming2025-milestone2/backend/locations/${locationId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -53,7 +53,7 @@ const locationService = {
     async deleteLocation(locationId) {
         try {
             const token = localStorage.getItem("jwt_token");
-            const response = await fetch(`http://localhost/webprogramming2025-milestone1/backend/locations/${locationId}`, {
+            const response = await fetch(`http://localhost/webprogramming2025-milestone2/backend/locations/${locationId}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${token}`

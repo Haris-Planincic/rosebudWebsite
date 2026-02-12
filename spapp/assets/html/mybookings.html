@@ -1,0 +1,113 @@
+<div class="container py-4">
+  <h2 class="mb-3">My Screening Bookings</h2>
+
+  <div id="bookingsAuthWarning" class="alert alert-warning" style="display:none;">
+    Please log in to view your bookings.
+  </div>
+
+  <div id="bookingsEmpty" class="alert alert-info" style="display:none;">
+    You don’t have any confirmed bookings yet.
+  </div>
+
+  <div class="row" id="bookingsList"></div>
+</div>
+
+<script>
+  const BACKEND_BASE1 = "http://localhost/webprogramming2025-milestone2/backend";
+
+  function bookingCode(id) {
+    return "BK-" + id; // quick proof code using bookingId
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? "").replace(/[&<>"']/g, s => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[s]));
+  }
+
+  async function loadMyBookings() {
+    const token = localStorage.getItem("jwt_token");
+    if (!token) {
+      $("#bookingsAuthWarning").show();
+      $("#bookingsEmpty").hide();
+      $("#bookingsList").html("");
+      return;
+    }
+
+    $("#bookingsAuthWarning").hide();
+
+    try {
+      const bookings = await screeningService.getMyBookings();
+
+      if (!Array.isArray(bookings) || bookings.length === 0) {
+        $("#bookingsEmpty").show();
+        $("#bookingsList").html("");
+        return;
+      }
+
+      $("#bookingsEmpty").hide();
+
+      const $list = $("#bookingsList");
+      $list.html("");
+
+      bookings.forEach(b => {
+        const img = `${BACKEND_BASE1}/${escapeHtml(b.screeningImage)}`;
+        const code = bookingCode(b.bookingId);
+
+        $list.append(`
+          <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 shadow-sm">
+              <img src="${img}" class="card-img-top" style="height:220px; object-fit:cover;" />
+              <div class="card-body">
+                <h5 class="card-title mb-1">${escapeHtml(b.screeningTitle)}</h5>
+                <div class="text-muted">${escapeHtml(b.screeningTime)}</div>
+
+                <div class="mt-2">
+                  <strong>Booking Code:</strong>
+                  <span class="badge bg-dark">${escapeHtml(code)}</span>
+                </div>
+
+                <div class="mt-2">
+                  <strong>Status:</strong> ${escapeHtml(b.status)}
+                </div>
+
+                ${b.providerRef ? `
+                  <div class="small text-muted mt-2">
+                    Payment Ref: ${escapeHtml(b.providerRef)}
+                  </div>
+                ` : ``}
+              </div>
+
+              <div class="card-footer bg-transparent border-top-0">
+                <button class="btn btn-sm btn-outline-dark copy-booking" data-code="${escapeHtml(code)}">
+                  Copy Booking Code
+                </button>
+              </div>
+            </div>
+          </div>
+        `);
+      });
+
+    } catch (err) {
+      console.error("Failed to load bookings:", err);
+      $("#bookingsList").html(`
+        <div class="col-12">
+          <div class="alert alert-danger mb-0">Failed to load bookings.</div>
+        </div>
+      `);
+    }
+  }
+
+  // Copy booking code button
+  $(document).on("click", ".copy-booking", async function() {
+    const code = $(this).data("code");
+    try {
+      await navigator.clipboard.writeText(code);
+      $(this).text("Copied!");
+      setTimeout(() => $(this).text("Copy Booking Code"), 1200);
+    } catch {
+      alert("Copy failed. Booking code: " + code);
+    }
+  });
+
+</script>

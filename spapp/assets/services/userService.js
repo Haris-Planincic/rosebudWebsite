@@ -4,7 +4,7 @@ const userService = {
   async getAllUsers() {
     try {
       const token = localStorage.getItem("jwt_token");
-      const response = await fetch("http://localhost/webprogramming2025-milestone1/backend/users", {
+      const response = await fetch("http://localhost/webprogramming2025-milestone2/backend/users", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -24,7 +24,7 @@ const userService = {
   async createUser(userData) {
     try {
       const token = localStorage.getItem("jwt_token");
-      const response = await fetch("http://localhost/webprogramming2025-milestone1/backend/users", {
+      const response = await fetch("http://localhost/webprogramming2025-milestone2/backend/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +47,7 @@ const userService = {
   async updateUser(userId, userData) {
     try {
       const token = localStorage.getItem("jwt_token");
-      const response = await fetch(`http://localhost/webprogramming2025-milestone1/backend/users/${userId}`, {
+      const response = await fetch(`http://localhost/webprogramming2025-milestone2/backend/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -69,7 +69,7 @@ const userService = {
   async deleteUser(userId) {
     try {
       const token = localStorage.getItem("jwt_token");
-      const response = await fetch(`http://localhost/webprogramming2025-milestone1/backend/users/${userId}`, {
+      const response = await fetch(`http://localhost/webprogramming2025-milestone2/backend/users/${userId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -84,5 +84,44 @@ const userService = {
     } catch (err) {
       console.error("Error deleting user:", err);
     }
-  }
+  },
+  async getMe() {
+  const token = localStorage.getItem("jwt_token");
+  const res = await fetch("http://localhost/webprogramming2025-milestone2/backend/users/me", {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+},
+
+async updateMe(data) {
+  const token = localStorage.getItem("jwt_token");
+  const res = await fetch("http://localhost/webprogramming2025-milestone2/backend/users/me", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json(); // must include { token, user }
+},
+
+
+async changePassword(currentPassword, newPassword) {
+  const token = localStorage.getItem("jwt_token");
+  const res = await fetch("http://localhost/webprogramming2025-milestone2/backend/users/me/password", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
 };

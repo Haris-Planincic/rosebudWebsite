@@ -15,6 +15,10 @@ class UserPurchaseService {
     public function getById($id) {
         return $this->dao->getUserPurchaseById($id);
     }
+    public function getMine($userId) {
+    return $this->dao->getPurchasesForUser($userId);
+}
+
 
     public function create($data) {
         if (!isset($data['userId'], $data['productId'])) {

@@ -1,333 +1,539 @@
-
 <section class="py-5">
-    <div class="container px-4 px-lg-5 mt-5">
-        <h2 class="mb-3">Database Tables</h2>
-        
-        <div class="mb-3">
-            <button class="btn btn-primary" onclick="showAddUserForm()">Add User</button>
-            <button class="btn btn-secondary" onclick="showAddFilmForm()">Add Film</button>
-            <button class="btn btn-success" onclick="showAddProductForm()">Add Product</button>
-            <button class="btn btn-warning" onclick="showAddLocationForm()">Add Location</button>
-            <button class="btn btn-info" onclick="showAddScreeningForm()">Add Screening</button>
-        </div>
-        
-        <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search...">
-        
-        <h3 class="mt-4">Users</h3>
-<table class="table table-bordered searchable bg-white">
-  <thead>
-    <tr>
-      <th>User ID</th>
-      <th>First Name</th>
-      <th>Last Name</th>
-      <th>Email</th>
-      <th>Created</th>
-      <th>Role</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="userTableBody"></tbody>
-</table>
+  <div class="container px-4 px-lg-5 mt-5">
 
-<div id="userFormContainer" class="my-4" style="display: none;">
-  <h4 id="userFormTitle">Add New User</h4>
-  <form id="userForm">
-    <input type="hidden" id="userId">
-    <div class="mb-2">
-      <input type="text" id="userFirstName" class="form-control" placeholder="First Name" required>
-    </div>
-    <div class="mb-2">
-      <input type="text" id="userLastName" class="form-control" placeholder="Last Name" required>
-    </div>
-    <div class="mb-2">
-      <input type="email" id="userEmail" class="form-control" placeholder="Email" required>
-    </div>
-    <div class="mb-2">
-      <input type="password" id="userPassword" class="form-control" placeholder="Password" required>
-    </div>
-    <div class="mb-2">
-      <select id="userRole" class="form-control" required>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-success">Save</button>
-    <button type="button" class="btn btn-secondary" onclick="cancelUserForm()">Cancel</button>
-  </form>
-</div>
-
-        
-        <h3 class="mt-4">Films</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>Film ID</th>
-                    <th>Title</th>
-                    <th>Year</th>
-                    <th>Director</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="filmTableBody"></tbody>
-        </table>
-        <div id="filmFormContainer" class="my-4" style="display: none;">
-    <h4 id="filmFormTitle">Add New Film</h4>
-    <form id="filmForm">
-        <input type="hidden" id="filmId">
-
-        <div class="mb-2">
-            <input type="text" id="filmTitle" class="form-control" placeholder="Film Title" required>
-        </div>
-
-        <div class="mb-2">
-            <input type="number" id="yearOfRelease" class="form-control" placeholder="Year of Release" required>
-        </div>
-
-        <div class="mb-2">
-            <input type="text" id="director" class="form-control" placeholder="Director" required>
-        </div>
-
-        <div class="mb-2">
-            <input type="text" id="posterImage" class="form-control" placeholder="Poster Image URL" required>
-        </div>
-
-        <button type="submit" class="btn btn-success">Save</button>
-        <button type="button" class="btn btn-secondary" onclick="cancelFilmForm()">Cancel</button>
-    </form>
-</div>
-
-        <h3 class="mt-4">Products</h3>
-<table class="table table-bordered searchable bg-white">
-  <thead>
-    <tr>
-      <th>Product ID</th>
-      <th>Name</th>
-      <th>Price</th>
-      <th>Description</th>
-      <th>Image</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="productTableBody"></tbody>
-</table>
-
-<div id="productFormContainer" class="my-4" style="display: none;">
-  <h4 id="productFormTitle">Add New Product</h4>
-  <form id="productForm">
-    <input type="hidden" id="productId">
-
-    <div class="mb-2">
-      <input type="text" id="productName" class="form-control" placeholder="Product Name" required>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="mb-0">Admin Panel</h2>
+      <div class="text-muted small">JWT required (admin)</div>
     </div>
 
-    <div class="mb-2">
-      <input type="number" step="0.01" id="productPrice" class="form-control" placeholder="Price" required>
+    <div class="mb-3 d-flex flex-wrap gap-2">
+      <button class="btn btn-primary" id="btnShowUserForm">Add User</button>
+      <button class="btn btn-info" id="btnShowScreeningForm">Add Screening</button>
+      <button class="btn btn-outline-secondary" id="btnReloadAll">Reload</button>
     </div>
 
-    <div class="mb-2">
-      <textarea id="productDescription" class="form-control" placeholder="Description" required></textarea>
-    </div>
+    <input type="text" id="searchInput" class="form-control mb-4" placeholder="Search in all tables...">
 
-    <div class="mb-2">
-      <input type="text" id="productImage" class="form-control" placeholder="Image URL (optional)">
-    </div>
+    <!-- ================= USERS ================= -->
+    <div class="mb-5">
+      <div class="d-flex align-items-center justify-content-between">
+        <h3 class="mt-2">Users</h3>
+        <div id="usersStatus" class="small text-muted"></div>
+      </div>
 
-    <button type="submit" class="btn btn-success">Save</button>
-    <button type="button" class="btn btn-secondary" onclick="cancelProductForm()">Cancel</button>
-  </form>
-</div>
-
-        
-        <h3 class="mt-4">Locations</h3>
-<table class="table table-bordered searchable bg-white">
-  <thead>
-    <tr>
-      <th>Location ID</th>
-      <th>Name</th>
-      <th>Address</th>
-      <th>Image</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="locationTableBody"></tbody>
-</table>
-
-<div id="locationFormContainer" class="my-4" style="display: none;">
-  <h4 id="locationFormTitle">Add New Location</h4>
-  <form id="locationForm">
-    <input type="hidden" id="locationId">
-
-    <div class="mb-2">
-      <input type="text" id="locationName" class="form-control" placeholder="Location Name" required>
-    </div>
-
-    <div class="mb-2">
-      <input type="text" id="locationAddress" class="form-control" placeholder="Location Address" required>
-    </div>
-
-    <div class="mb-2">
-      <input type="text" id="locationImage" class="form-control" placeholder="Image URL (optional)">
-    </div>
-
-    <button type="submit" class="btn btn-success">Save</button>
-    <button type="button" class="btn btn-secondary" onclick="cancelLocationForm()">Cancel</button>
-  </form>
-</div>
-
-        
-        <h3 class="mt-4">Screenings</h3>
-<table class="table table-bordered searchable bg-white">
-  <thead>
-    <tr>
-      <th>Screening ID</th>
-      <th>Title</th>
-      <th>Year</th>
-      <th>Time</th>
-      <th>Image</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="screeningTableBody"></tbody>
-</table>
-
-<div id="screeningFormContainer" class="my-4" style="display: none;">
-  <h4 id="screeningFormTitle">Add New Screening</h4>
-  <form id="screeningForm">
-    <input type="hidden" id="screeningId">
-
-    <div class="mb-2">
-      <input type="text" id="screeningTitle" class="form-control" placeholder="Screening Title" required>
-    </div>
-
-    <div class="mb-2">
-      <input type="number" id="yearOfReleaseScreening" class="form-control" placeholder="Year of Release" required>
-    </div>
-
-    <div class="mb-2">
-      <input type="datetime-local" id="screeningTime" class="form-control" required>
-    </div>
-
-    <div class="mb-2">
-      <input type="text" id="screeningImage" class="form-control" placeholder="Image URL">
-    </div>
-
-    <button type="submit" class="btn btn-success">Save</button>
-    <button type="button" class="btn btn-secondary" onclick="cancelScreeningForm()">Cancel</button>
-  </form>
-</div>
-
-        
-        <h3 class="mt-4">Payments</h3>
-<table class="table table-bordered searchable bg-white">
-    <thead>
-        <tr>
-            <th>Payment ID</th>
+      <table class="table table-bordered searchable bg-white">
+        <thead>
+          <tr>
             <th>User ID</th>
-            <th>Amount</th>
-            <th>Payment Date</th>
-        </tr>
-    </thead>
-    <tbody id="paymentTableBody"></tbody>
-</table>
+            <th>First</th>
+            <th>Last</th>
+            <th>Email</th>
+            <th>Created</th>
+            <th>Role</th>
+            <th style="width:170px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
 
-        
-        <h3 class="mt-4">User Purchases</h3>
-        <table class="table table-bordered searchable bg-white">
-            <thead>
-                <tr>
-                    <th>Purchase ID</th>
-                    <th>User ID</th>
-                    <th>Product ID</th>
-                    <th>Purchase Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>2025-03-25</td>
-                </tr>
-            </tbody>
-        </table>
+      <div id="userFormContainer" class="my-4" style="display:none;">
+        <h4 id="userFormTitle">Add New User</h4>
+
+        <div id="userFormError" class="alert alert-danger d-none"></div>
+        <div id="userFormSuccess" class="alert alert-success d-none"></div>
+
+        <form id="userForm" class="bg-white border rounded p-3">
+          <input type="hidden" id="userId">
+
+          <div class="row g-2">
+            <div class="col-md-6">
+              <input type="text" id="userFirstName" class="form-control" placeholder="First Name" required>
+            </div>
+            <div class="col-md-6">
+              <input type="text" id="userLastName" class="form-control" placeholder="Last Name" required>
+            </div>
+            <div class="col-12">
+              <input type="email" id="userEmail" class="form-control" placeholder="Email" required>
+            </div>
+
+            <!-- password only required when creating -->
+            <div class="col-12">
+              <input type="password" id="userPassword" class="form-control" placeholder="Password (required for new user)">
+            </div>
+
+            <div class="col-md-6">
+              <select id="userRole" class="form-control" required>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-success">Save</button>
+              <button type="button" class="btn btn-secondary" id="btnCancelUserForm">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
+    <!-- ================= SCREENINGS ================= -->
+    <div class="mb-5">
+      <div class="d-flex align-items-center justify-content-between">
+        <h3 class="mt-2">Screenings</h3>
+        <div id="screeningsStatus" class="small text-muted"></div>
+      </div>
+
+      <table class="table table-bordered searchable bg-white">
+        <thead>
+          <tr>
+            <th>Screening ID</th>
+            <th>Title</th>
+            <th style="width:90px;">Year</th>
+            <th style="width:200px;">Time</th>
+            <th style="width:110px;">Capacity</th>
+            <th style="width:140px;">Image</th>
+            <th style="width:170px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="screeningTableBody"></tbody>
+      </table>
+
+      <div id="screeningFormContainer" class="my-4" style="display:none;">
+        <h4 id="screeningFormTitle">Add New Screening</h4>
+
+        <div id="screeningFormError" class="alert alert-danger d-none"></div>
+        <div id="screeningFormSuccess" class="alert alert-success d-none"></div>
+
+        <form id="screeningForm" class="bg-white border rounded p-3">
+          <input type="hidden" id="screeningId">
+
+          <div class="row g-2">
+            <div class="col-md-6">
+              <input type="text" id="screeningTitle" class="form-control" placeholder="Screening Title" required>
+            </div>
+
+            <div class="col-md-3">
+              <input type="number" id="yearOfReleaseScreening" class="form-control" placeholder="Year" required>
+            </div>
+
+            <div class="col-md-3">
+              <input type="number" id="screeningCapacity" class="form-control" placeholder="Capacity" min="1" required>
+            </div>
+
+            <div class="col-12">
+              <input type="datetime-local" id="screeningTime" class="form-control" required>
+              <div class="small text-muted mt-1">
+                Note: backend likely stores a datetime string; we convert to ISO format.
+              </div>
+            </div>
+
+            <div class="col-12">
+              <input type="file" id="screeningImage" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+<div class="small text-muted mt-1">
+  For edit: leave empty to keep existing image.
+</div>
+
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-success">Save</button>
+              <button type="button" class="btn btn-secondary" id="btnCancelScreeningForm">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
 </section>
 
 <footer class="py-5 bg-dark">
-    <div class="container">
-        <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
-    </div>
+  <div class="container">
+    <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
+  </div>
 </footer>
 
 <script>
-    document.getElementById("searchInput").addEventListener("keyup", function() {
-        let filter = this.value.toLowerCase();
-        let tables = document.querySelectorAll(".searchable tbody tr");
-        
-        tables.forEach(row => {
-            let text = row.textContent.toLowerCase();
-            row.style.display = text.includes(filter) ? "" : "none";
-        });
-    });
-</script>
-<script>
-async function loadFilmsAdmin() {
-    const films = await filmService.getAllFilms();
-    const tableBody = document.getElementById("filmTableBody");
-    tableBody.innerHTML = "";
+  // ===========================
+  // Config
+  // ===========================
+  
 
-    films.forEach(film => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${film.filmId}</td>
-            <td>${film.filmTitle}</td>
-            <td>${film.yearOfRelease}</td>
-            <td>${film.director}</td>
-            <td>
-                <button class="btn btn-sm btn-warning" onclick='editFilm(${JSON.stringify(film)})'>Edit</button>
-                <button class="btn btn-sm btn-danger" onclick='deleteFilm(${film.filmId})'>Delete</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
+  function getToken() {
+    return localStorage.getItem("jwt_token");
+  }
 
-// Load films on page load
-document.addEventListener("DOMContentLoaded", loadFilmsAdmin);
-</script>
-<script>
-function showAddFilmForm() {
-    document.getElementById("filmFormTitle").innerText = "Add New Film";
-    document.getElementById("filmFormContainer").style.display = "block";
-    document.getElementById("filmForm").reset();
-    document.getElementById("filmId").value = "";
-}
-
-function cancelFilmForm() {
-    document.getElementById("filmFormContainer").style.display = "none";
-}
-</script>
-<script>
-document.getElementById("filmForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const filmData = {
-        filmTitle: document.getElementById("filmTitle").value,
-        yearOfRelease: document.getElementById("yearOfRelease").value,
-        director: document.getElementById("director").value,
-        posterImage: document.getElementById("posterImage").value
+  function authHeaders() {
+    const token = getToken();
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
     };
+  }
 
-    const filmId = document.getElementById("filmId").value;
+  function show(el) { el.style.display = "block"; }
+  function hide(el) { el.style.display = "none"; }
 
-    if (filmId) {
-        await filmService.updateFilm(filmId, filmData);
+  function setAlert(el, msg, type) {
+    el.classList.remove("d-none");
+    el.classList.toggle("alert-danger", type === "error");
+    el.classList.toggle("alert-success", type === "success");
+    el.textContent = msg;
+  }
+
+  function clearAlerts(...els) {
+    els.forEach(el => {
+      el.classList.add("d-none");
+      el.textContent = "";
+      el.classList.remove("alert-danger","alert-success");
+    });
+  }
+
+  async function fetchJson(url, options = {}) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || `Request failed (${res.status})`);
+    }
+    return await res.json();
+  }
+
+  // ===========================
+  // Search filter (all tables)
+  // ===========================
+  document.getElementById("searchInput").addEventListener("keyup", function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll(".searchable tbody tr");
+    rows.forEach(row => {
+      let text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? "" : "none";
+    });
+  });
+
+  // ===========================
+  // USERS
+  // ===========================
+  async function loadUsers() {
+    const status = document.getElementById("usersStatus");
+    status.textContent = "Loading...";
+    const tbody = document.getElementById("userTableBody");
+    tbody.innerHTML = "";
+
+    try {
+      const users = await fetchJson(`${API_BASE}/users`, {
+        method: "GET",
+        headers: authHeaders()
+      });
+
+      users.forEach(u => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${u.userId}</td>
+          <td>${u.firstName || ""}</td>
+          <td>${u.lastName || ""}</td>
+          <td>${u.email || ""}</td>
+          <td>${u.accountCreated || ""}</td>
+          <td>${u.role || ""}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" data-action="edit-user" data-id="${u.userId}">Edit</button>
+            <button class="btn btn-sm btn-danger" data-action="delete-user" data-id="${u.userId}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      status.textContent = `Loaded ${users.length}`;
+    } catch (e) {
+      console.error(e);
+      status.textContent = "Failed to load";
+    }
+  }
+
+  function openUserForm(mode, user = null) {
+    const container = document.getElementById("userFormContainer");
+    const title = document.getElementById("userFormTitle");
+    const passInput = document.getElementById("userPassword");
+
+    clearAlerts(document.getElementById("userFormError"), document.getElementById("userFormSuccess"));
+
+    if (mode === "add") {
+      title.textContent = "Add New User";
+      document.getElementById("userForm").reset();
+      document.getElementById("userId").value = "";
+      passInput.placeholder = "Password (required for new user)";
+      passInput.required = true;
     } else {
-        await filmService.createFilm(filmData);
+      title.textContent = "Edit User";
+      document.getElementById("userId").value = user.userId;
+      document.getElementById("userFirstName").value = user.firstName || "";
+      document.getElementById("userLastName").value = user.lastName || "";
+      document.getElementById("userEmail").value = user.email || "";
+      document.getElementById("userRole").value = user.role || "user";
+      passInput.value = "";
+      passInput.placeholder = "Password (leave empty to keep unchanged)";
+      passInput.required = false;
     }
 
-    cancelFilmForm();
-    loadFilmsAdmin();
-});
-</script>
+    show(container);
+    container.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
+  function closeUserForm() {
+    hide(document.getElementById("userFormContainer"));
+  }
+
+  document.getElementById("btnShowUserForm").addEventListener("click", () => openUserForm("add"));
+  document.getElementById("btnCancelUserForm").addEventListener("click", closeUserForm);
+
+  document.getElementById("userForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById("userFormError");
+    const okEl = document.getElementById("userFormSuccess");
+    clearAlerts(errEl, okEl);
+
+    const userId = document.getElementById("userId").value;
+
+    const payload = {
+      firstName: document.getElementById("userFirstName").value.trim(),
+      lastName: document.getElementById("userLastName").value.trim(),
+      email: document.getElementById("userEmail").value.trim(),
+      role: document.getElementById("userRole").value
+    };
+
+    const password = document.getElementById("userPassword").value;
+    if (password && password.trim() !== "") payload.password = password;
+
+    try {
+      if (!getToken()) throw new Error("Missing JWT token. Please login.");
+
+      if (userId) {
+        await fetchJson(`${API_BASE}/users/${userId}`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify(payload)
+        });
+        setAlert(okEl, "User updated ✅", "success");
+      } else {
+        if (!payload.password) throw new Error("Password is required for new user.");
+        await fetchJson(`${API_BASE}/users`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(payload)
+        });
+        setAlert(okEl, "User created ✅", "success");
+      }
+
+      await loadUsers();
+      setTimeout(closeUserForm, 600);
+    } catch (ex) {
+      console.error(ex);
+      setAlert(errEl, ex.message || "Failed to save user", "error");
+    }
+  });
+
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const action = btn.getAttribute("data-action");
+    const id = btn.getAttribute("data-id");
+
+    try {
+      if (action === "edit-user") {
+        const user = await fetchJson(`${API_BASE}/users/${id}`, { headers: authHeaders() });
+        openUserForm("edit", user);
+      }
+
+      if (action === "delete-user") {
+        if (!confirm("Delete this user?")) return;
+        await fetchJson(`${API_BASE}/users/${id}`, { method: "DELETE", headers: authHeaders() });
+        await loadUsers();
+      }
+    } catch (ex) {
+      alert(ex.message || "Action failed");
+    }
+  });
+
+  
+
+  // ===========================
+  // SCREENINGS
+  // ===========================
+  async function loadScreeningsAdmin() {
+    const status = document.getElementById("screeningsStatus");
+    status.textContent = "Loading...";
+    const tbody = document.getElementById("screeningTableBody");
+    tbody.innerHTML = "";
+
+    try {
+      const screenings = await fetchJson(`${API_BASE}/screenings`, { method: "GET" });
+
+      screenings.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.screeningId}</td>
+          <td>${s.screeningTitle || ""}</td>
+          <td>${s.yearOfRelease || ""}</td>
+          <td>${s.screeningTime || ""}</td>
+          <td>${s.capacity ?? ""}</td>
+          <td>${s.screeningImage ? `<span class="small">${s.screeningImage}</span>` : ""}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" data-action="edit-screening" data-id="${s.screeningId}">Edit</button>
+            <button class="btn btn-sm btn-danger" data-action="delete-screening" data-id="${s.screeningId}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      status.textContent = `Loaded ${screenings.length}`;
+    } catch (e) {
+      console.error(e);
+      status.textContent = "Failed to load";
+    }
+  }
+
+  function toDatetimeLocalValue(dt) {
+    // Accepts "YYYY-MM-DD HH:MM:SS" or ISO and converts to "YYYY-MM-DDTHH:MM"
+    if (!dt) return "";
+    const s = String(dt).replace(" ", "T");
+    return s.length >= 16 ? s.slice(0, 16) : s;
+  }
+
+  function openScreeningForm(mode, screening = null) {
+    const container = document.getElementById("screeningFormContainer");
+    clearAlerts(document.getElementById("screeningFormError"), document.getElementById("screeningFormSuccess"));
+
+    if (mode === "add") {
+      document.getElementById("screeningFormTitle").textContent = "Add New Screening";
+      document.getElementById("screeningForm").reset();
+      document.getElementById("screeningId").value = "";
+      document.getElementById("screeningCapacity").value = 30;
+    } else {
+      document.getElementById("screeningFormTitle").textContent = "Edit Screening";
+      document.getElementById("screeningId").value = screening.screeningId;
+      document.getElementById("screeningTitle").value = screening.screeningTitle || "";
+      document.getElementById("yearOfReleaseScreening").value = screening.yearOfRelease || "";
+      document.getElementById("screeningCapacity").value = screening.capacity ?? 30;
+      document.getElementById("screeningTime").value = toDatetimeLocalValue(screening.screeningTime);
+      document.getElementById("screeningImage").value = ""; 
+
+    }
+
+    show(container);
+    container.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function closeScreeningForm() {
+    hide(document.getElementById("screeningFormContainer"));
+  }
+
+  document.getElementById("btnShowScreeningForm").addEventListener("click", () => openScreeningForm("add"));
+  document.getElementById("btnCancelScreeningForm").addEventListener("click", closeScreeningForm);
+
+  document.getElementById("screeningForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById("screeningFormError");
+  const okEl = document.getElementById("screeningFormSuccess");
+  clearAlerts(errEl, okEl);
+
+  try {
+    if (!getToken()) throw new Error("Missing JWT token. Please login.");
+
+    const screeningId = document.getElementById("screeningId").value;
+
+    const rawTime = document.getElementById("screeningTime").value; // "YYYY-MM-DDTHH:MM"
+    const screeningTime = rawTime ? (rawTime.replace("T", " ") + ":00") : "";
+
+    const title = document.getElementById("screeningTitle").value.trim();
+    const year = document.getElementById("yearOfReleaseScreening").value;
+    const cap = document.getElementById("screeningCapacity").value;
+
+    // Build multipart form
+    const fd = new FormData();
+    fd.append("screeningTitle", title);
+    fd.append("yearOfRelease", year);
+    fd.append("screeningTime", screeningTime);
+    fd.append("capacity", cap);
+
+    const fileInput = document.getElementById("screeningImage");
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!screeningId) {
+      // Add mode: image required
+      if (!file) throw new Error("Image is required for a new screening.");
+      fd.append("screeningImage", file);
+    } else {
+      // Edit mode: image optional
+      if (file) fd.append("screeningImage", file);
+    }
+
+    // NOTE: do NOT set Content-Type manually with FormData
+    if (screeningId) {
+      await fetchJson(`${API_BASE}/screenings/${screeningId}/upload-edit`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd
+      });
+      setAlert(okEl, "Screening updated ✅", "success");
+    } else {
+      await fetchJson(`${API_BASE}/screenings/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd
+      });
+      setAlert(okEl, "Screening created ✅", "success");
+    }
+
+    await loadScreeningsAdmin();
+    setTimeout(closeScreeningForm, 600);
+  } catch (ex) {
+    console.error(ex);
+    setAlert(errEl, ex.message || "Failed to save screening", "error");
+  }
+});
+
+
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const action = btn.getAttribute("data-action");
+    const id = btn.getAttribute("data-id");
+
+    try {
+      if (action === "edit-screening") {
+        const s = await fetchJson(`${API_BASE}/screenings/${id}`, { headers: authHeaders() });
+        openScreeningForm("edit", s);
+      }
+
+      if (action === "delete-screening") {
+        if (!confirm("Delete this screening?")) return;
+        await fetchJson(`${API_BASE}/screenings/${id}`, { method: "DELETE", headers: authHeaders() });
+        await loadScreeningsAdmin();
+      }
+    } catch (ex) {
+      alert(ex.message || "Action failed");
+    }
+  });
+
+
+  // ===========================
+  // Initial load + reload button
+  // ===========================
+  async function loadAllAdmin() {
+    await loadUsers();
+    await loadScreeningsAdmin();
+    await loadPaymentsAdmin();
+  }
+
+  document.getElementById("btnReloadAll").addEventListener("click", loadAllAdmin);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) {
+      alert("You are not logged in. Please login as admin.");
+      window.location.hash = "#login";
+      return;
+    }
+    loadAllAdmin();
+  });
+</script>

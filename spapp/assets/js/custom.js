@@ -1,17 +1,79 @@
-$(document).ready(function () {
 
-  // Set section height
+$(document).ready(function () {
+  let activeConversationId = null;
   $("main#spapp > section").height($(document).height() - 60);
 
-  // SPApp initialization
   var app = $.spapp({ pageNotFound: 'error_404' });
 
-  // Routing
   app.route({ view: 'home', onCreate: () => $("#home"), onReady: updateNavbar });
   app.route({ view: 'locations', load: '../assets/html/locations.html', onReady: updateNavbar });
   app.route({ view: 'films', load: '../assets/html/films.html', onReady: updateNavbar });
   app.route({ view: 'products', load: '../assets/html/products.html', onReady: updateNavbar });
-  app.route({ view: 'screenings', load: '../assets/html/screenings.html', onReady: updateNavbar });
+  app.route({
+  view: 'screenings',
+  load: '../assets/html/screenings.html',
+  onReady: () => {
+    updateNavbar();
+
+    // Wait one tick so the injected HTML is definitely in the DOM
+    setTimeout(() => {
+      if (typeof renderScreenings === "function") {
+        renderScreenings();
+      } else {
+        console.warn("renderScreenings not found (screenings.html script not executed yet).");
+      }
+    }, 0);
+  }
+});
+
+  app.route({
+  view: 'messages',
+  load: '../assets/html/messages.html',
+  onReady: () => {
+    updateNavbar();
+    if (typeof initMessagesPage === "function") initMessagesPage();
+  }
+});
+app.route({
+  view: 'mybookings',
+  load: '../assets/html/mybookings.html',
+  onReady: () => {
+    updateNavbar();
+
+    setTimeout(() => {
+      if (typeof loadMyBookings === "function") {
+        loadMyBookings();
+      } else {
+        console.warn("loadMyBookings is not defined yet.");
+      }
+    }, 0);
+  }
+});
+app.route({
+  view: 'myproducts',
+  load: '../assets/html/myproducts.html',
+  onReady: () => {
+    updateNavbar();
+
+    setTimeout(() => {
+      if (typeof loadMyProducts === "function") {
+        loadMyProducts();
+      } else {
+        console.warn("loadMyProducts is not defined yet.");
+      }
+    }, 0);
+  }
+});
+app.route({
+  view: 'profile',
+  load: '../assets/html/profile.html',
+  onReady: () => {
+    updateNavbar();
+    if (typeof initProfilePage === "function") initProfilePage();
+  }
+});
+
+
   app.route({
   view: 'admin',
   load: '../assets/html/admin.html',
@@ -78,44 +140,58 @@ $(document).ready(function () {
   // ----------------------
   // FUNCTIONS
   // ----------------------
-
-  function updateNavbar() {
+  
+function updateNavbar() {
   const token = localStorage.getItem('jwt_token');
-  const adminLink = $('a[href="#admin"]').closest('li');
+
+  // Right side controls (keep as you already do)
   const logoutBtn = $('#logoutBtn');
   const loginBtn = $('a[href="#login"]').closest('li');
   const registerBtn = $('a[href="#register"]').closest('li');
   const userInfo = $('#userInfo');
 
-  if (!adminLink.length || !logoutBtn.length || !loginBtn.length || !registerBtn.length || !userInfo.length) return;
+  // NEW: left side controls
+  const navAdmin = $('#navAdmin');
+  const navUserMenu = $('#navUserMenu');
+
+  if (!logoutBtn.length || !loginBtn.length || !registerBtn.length || !userInfo.length) return;
 
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const { role, firstName, lastName } = payload.user;
 
+      // Right side
       logoutBtn.show();
       loginBtn.hide();
       registerBtn.hide();
-      userInfo.show().find('span').text(`Logged in as ${firstName} ${lastName}`);
+      userInfo.show().find('span').text(`${firstName} ${lastName}`);
 
-      if (role === 'admin') {
-        adminLink.show();
-      } else {
-        adminLink.hide();
-      }
+      // Left side
+      navUserMenu.show();                 // show dropdown for logged-in users
+      if (role === 'admin') navAdmin.show();
+      else navAdmin.hide();
+
     } catch (e) {
       console.error("Invalid token", e);
       localStorage.removeItem('jwt_token');
+      updateNavbar(); // fallback to logged-out view
     }
   } else {
+    // Right side
     logoutBtn.hide();
     loginBtn.show();
     registerBtn.show();
-    adminLink.hide();
     userInfo.hide().find('span').text('');
+
+    // Left side
+    navAdmin.hide();
+    navUserMenu.hide();
   }
 }
+window.updateNavbar = updateNavbar;
+
+
 
 
   async function loginUser(email, password) {
@@ -123,7 +199,7 @@ $(document).ready(function () {
   errorDiv.hide();
 
   try {
-    const response = await fetch('http://localhost/webprogramming2025-milestone1/backend/auth/login', {
+    const response = await fetch('http://localhost/webprogramming2025-milestone2/backend/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -187,7 +263,7 @@ $(document).ready(function () {
     }
 
     // ✅ Backend expects: firstName, lastName, email, password
-    const response = await fetch('http://localhost/webprogramming2025-milestone1/backend/auth/register', {
+    const response = await fetch('http://localhost/webprogramming2025-milestone2/backend/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -646,4 +722,313 @@ async function loadPaymentsAdmin() {
     tableBody.appendChild(row);
   });
 }
+let activeConversationId = null;
+
+function initMessagesPage() {
+  const token = localStorage.getItem("jwt_token");
+
+  if (!token) {
+    $("#messagesAuthWarning").show();
+    $("#messagesLayout").hide();
+    return;
+  }
+
+  $("#messagesAuthWarning").hide();
+  $("#messagesLayout").show();
+
+  // Load my conversations when page opens
+  loadConversations();
+  // --- User search to start chat ---
+let searchTimer = null;
+
+$("#chatUserSearch").off("input").on("input", function () {
+  clearTimeout(searchTimer);
+
+  const q = $(this).val().trim();
+  if (q.length < 2) {
+    $("#userSearchResults").hide().empty();
+    return;
+  }
+
+  searchTimer = setTimeout(() => runUserSearch(q), 250);
+});
+
+// Hide dropdown when clicking outside
+$(document).off("click.userSearch").on("click.userSearch", function (e) {
+  if (!$(e.target).closest("#chatUserSearch, #userSearchResults").length) {
+    $("#userSearchResults").hide();
+  }
+});
+
+async function runUserSearch(q) {
+  console.log("Searching users:", `${API_BASE}/users/search?q=${encodeURIComponent(q)}`);
+
+  try {
+    const users = await messageService.searchUsersByName(q);
+
+    const box = $("#userSearchResults");
+    box.empty();
+
+    if (!users || users.length === 0) {
+      box.append(`<div class="list-group-item text-muted">No users found</div>`);
+      box.show();
+      return;
+    }
+
+    const myId = Number(getLoggedInUserIdFromToken());
+
+    users.forEach(u => {
+      // expect: userId, firstName, lastName, email (from backend)
+      const uid = Number(u.userId);
+
+      // optionally skip yourself
+      if (uid === myId) return;
+
+      const name = `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || `User ${uid}`;
+      const email = u.email ? ` <span class="small text-muted">(${escapeHtml(u.email)})</span>` : "";
+
+      box.append(`
+        <button type="button" class="list-group-item list-group-item-action" data-uid="${uid}">
+          <div class="fw-bold">${escapeHtml(name)}${email}</div>
+        </button>
+      `);
+    });
+
+    // click -> start chat
+    box.find("button[data-uid]").off("click").on("click", async function () {
+      const otherUserId = $(this).data("uid");
+
+      try {
+        const data = await messageService.getOrCreateDirectConversation(otherUserId);
+        activeConversationId = Number(data.conversationId);
+        $("#activeConversationId").text(activeConversationId);
+
+        $("#userSearchResults").hide().empty();
+        $("#chatUserSearch").val("");
+
+        await loadConversations();
+        await openConversation(activeConversationId);
+      } catch (e) {
+        alert("Failed to start chat: " + e.message);
+      }
+    });
+
+    box.show();
+  } catch (e) {
+    console.error(e);
+    $("#userSearchResults").hide().empty();
+  }
+}
+
+  // Refresh button
+  $("#refreshConvosBtn").off("click").on("click", loadConversations);
+
+
+
+  // Send message
+  $("#sendMessageForm").off("submit").on("submit", async function (e) {
+    e.preventDefault();
+    if (!activeConversationId) return alert("Start/select a conversation first.");
+
+    const body = $("#messageBody").val().trim();
+    if (!body) return;
+
+    try {
+      await messageService.sendMessage(activeConversationId, body);
+      $("#messageBody").val("");
+
+      await refreshMessages();
+      await loadConversations(); 
+      scrollChatToBottom();
+    } catch (e) {
+      alert("Failed to send message: " + e.message);
+    }
+  });
+}
+async function loadConversations() {
+  try {
+    const convos = await messageService.getMyConversations();
+    renderConversations(convos);
+  } catch (e) {
+    $("#conversationsList").html(`<div class="p-3 text-danger">Failed to load: ${escapeHtml(e.message)}</div>`);
+  }
+}
+
+function renderConversations(convos) {
+  const list = $("#conversationsList");
+  list.empty();
+
+  if (!convos || convos.length === 0) {
+    list.html(`<div class="p-3 text-muted">No conversations yet.</div>`);
+    return;
+  }
+
+  convos.forEach(c => {
+    const cid = Number(c.conversationId);
+    const isActive = cid === Number(activeConversationId);
+
+    const name = `${c.otherFirstName ?? ""} ${c.otherLastName ?? ""}`.trim() || `User ${c.otherUserId}`;
+    const last = c.lastMessageBody ? escapeHtml(c.lastMessageBody) : "<span class='text-muted'>No messages yet</span>";
+    const unread = Number(c.unreadCount || 0);
+
+    list.append(`
+      <button
+        type="button"
+        class="list-group-item list-group-item-action ${isActive ? "active" : ""}"
+        data-cid="${cid}"
+      >
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="fw-bold">${escapeHtml(name)}</div>
+          ${unread > 0 ? `<span class="badge bg-danger rounded-pill">${unread}</span>` : ""}
+        </div>
+        <div class="small ${isActive ? "" : "text-muted"} text-truncate" style="max-width: 100%;">
+          ${last}
+        </div>
+      </button>
+    `);
+  });
+
+  $("#conversationsList button[data-cid]").off("click").on("click", function () {
+    const cid = Number($(this).data("cid"));
+    openConversation(cid);
+  });
+}
+
+async function openConversation(conversationId) {
+  activeConversationId = Number(conversationId);
+  $("#activeConversationId").text(activeConversationId);
+
+  // mark read, then reload list to clear badge
+  try { await messageService.markAsRead(activeConversationId); } catch (_) {}
+
+  await refreshMessages();
+  await loadConversations();
+}
+
+
+async function refreshMessages() {
+  if (!activeConversationId) return;
+
+  const msgs = await messageService.getMessages(activeConversationId);
+  const me = getLoggedInUserIdFromToken();
+
+  const box = $("#chatMessages");
+  box.empty();
+
+  msgs.forEach(m => {
+    const isMe = Number(m.senderId) === Number(me);
+
+    box.append(`
+      <div class="mb-2 ${isMe ? "text-end" : ""}">
+        <div class="d-inline-block p-2 rounded border ${isMe ? "bg-light" : ""}" style="max-width: 75%;">
+          <div class="small text-muted">${m.firstName} ${m.lastName}</div>
+          <div>${escapeHtml(m.body)}</div>
+        </div>
+      </div>
+    `);
+  });
+
+  scrollChatToBottom();
+}
+async function initProfilePage() {
+  const profileMsg = $("#profileMsg");
+  const passwordMsg = $("#passwordMsg");
+
+  profileMsg.text("");
+  passwordMsg.text("");
+
+  // Load current user into the form
+  try {
+    const me = await userService.getMe();
+    $("#pfFirstName").val(me.firstName || "");
+    $("#pfLastName").val(me.lastName || "");
+    $("#pfEmail").val(me.email || "");
+  } catch (e) {
+    profileMsg.text(e.message).addClass("text-danger");
+    return;
+  }
+
+  // Save profile info
+  $("#btnSaveProfile").off("click").on("click", async () => {
+    profileMsg.removeClass("text-danger text-success").text("");
+
+    try {
+      const firstName = $("#pfFirstName").val().trim();
+      const lastName  = $("#pfLastName").val().trim();
+      const email     = $("#pfEmail").val().trim();
+
+      // ✅ Backend should return: { token, user }
+      const res = await userService.updateMe({ firstName, lastName, email });
+
+      // ✅ Store refreshed JWT so navbar uses updated name from token payload
+      if (res && res.token) {
+        localStorage.setItem("jwt_token", res.token);
+      }
+
+      // ✅ Optional: refresh form from returned user (source of truth)
+      if (res && res.user) {
+        $("#pfFirstName").val(res.user.firstName || "");
+        $("#pfLastName").val(res.user.lastName || "");
+        $("#pfEmail").val(res.user.email || "");
+      }
+
+      profileMsg.addClass("text-success").text("Profile updated.");
+
+      // ✅ Now updateNavbar reads the NEW token and shows the new name
+      updateNavbar();
+
+    } catch (e) {
+      profileMsg.addClass("text-danger").text(e.message);
+    }
+  });
+
+  // Change password
+  $("#btnChangePassword").off("click").on("click", async () => {
+    passwordMsg.removeClass("text-danger text-success").text("");
+
+    const currentPassword = $("#pfCurrentPassword").val();
+    const newPassword = $("#pfNewPassword").val();
+    const confirm = $("#pfConfirmPassword").val();
+
+    if (newPassword !== confirm) {
+      passwordMsg.addClass("text-danger").text("New passwords do not match.");
+      return;
+    }
+
+    try {
+      await userService.changePassword(currentPassword, newPassword);
+      passwordMsg.addClass("text-success").text("Password changed successfully.");
+      $("#pfCurrentPassword, #pfNewPassword, #pfConfirmPassword").val("");
+    } catch (e) {
+      passwordMsg.addClass("text-danger").text(e.message);
+    }
+  });
+}
+
+
+function getLoggedInUserIdFromToken() {
+  const token = localStorage.getItem("jwt_token");
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.user.userId;
+  } catch {
+    return null;
+  }
+}
+
+function scrollChatToBottom() {
+  const el = document.getElementById("chatMessages");
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 

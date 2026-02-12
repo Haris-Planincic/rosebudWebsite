@@ -1,108 +1,119 @@
-<!-- Header-->
 <header class="bg-dark py-5">
-    <div class="container px-4 px-lg-5 my-5">
-        <div class="text-center text-white">
-            <h1 class="display-4 fw-bolder">PRODUCTS</h1>
-        </div>
+  <div class="container px-4 px-lg-5 my-5">
+    <div class="text-center text-white">
+      <h1 class="display-4 fw-bolder">PRODUCTS</h1>
     </div>
+  </div>
 </header>
 
-<!-- Section-->
 <section class="py-5">
-    <div class="container px-4 px-lg-5 mt-5">
-        <div class="mb-4 text-center">
-            <input type="text" id="searchBar" class="form-control" placeholder="Search for a product...">
-        </div>
-        <div id="product-list" class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-            <!-- Products will be injected here -->
-        </div>
+  <div class="container px-4 px-lg-5 mt-5">
+    <div class="mb-4 text-center">
+      <input type="text" id="searchBar" class="form-control" placeholder="Search for a product...">
     </div>
+
+    <div id="product-list"
+         class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"></div>
+  </div>
 </section>
 
 <footer class="py-5 bg-dark">
-    <div class="container">
-        <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
-    </div>
+  <div class="container">
+    <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
+  </div>
 </footer>
 
-<!-- Include jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Include payment and product services -->
-<script src="../services/productService.js"></script>
-<script src="../services/paymentService.js"></script>
+<style>
+  .product-card {
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+  }
+  .product-card:focus {
+    outline: 2px solid rgba(0,0,0,0.25);
+    outline-offset: 3px;
+  }
+</style>
+
+
 
 <script>
-    async function renderProducts() {
-        const products = await productService.getAllProducts();
-        const container = document.getElementById("product-list");
-        container.innerHTML = "";
+  function renderProducts(products) {
+  const container = document.getElementById("product-list");
+  container.innerHTML = "";
 
-        products.forEach(product => {
-            const isSold = product.isSold === 1 || product.isSold === true;
+  products.forEach(product => {
+    const card = document.createElement("div");
+    card.className = "col mb-5 product";
 
-            const card = document.createElement("div");
-            card.className = "col mb-5 product";
-            card.innerHTML = `
-                <div class="card h-100" data-product-id="${product.productId}">
-                    <img class="card-img-top" src="${product.productImage}" alt="${product.productName}" />
-                    <div class="card-body p-4">
-                        <div class="text-center">
-                            <h5 class="fw-bolder">${product.productName}</h5>
-                            $${parseFloat(product.productPrice).toFixed(2)}
-                        </div>
-                    </div>
-                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                        <div class="text-center">
-                            ${isSold
-                                ? `<button class="btn btn-danger mt-auto" disabled>Sold</button>`
-                                : `<button class="btn btn-outline-dark mt-auto purchase-btn" type="button">Purchase</button>`
-                            }
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
+    card.innerHTML = `
+      <div class="card h-100 product-card"
+           role="button"
+           tabindex="0"
+           data-product-id="${product.productId}">
+        <img class="card-img-top card-img-fixed" 
+             src="http://localhost/webprogramming2025-milestone2/backend/${product.productImage}"
+             alt="${product.productName}" />
+        <div class="card-body p-4">
+          <div class="text-center">
+            <h5 class="fw-bolder mb-2">${product.productName}</h5>
+            <div class="text-muted">$${parseFloat(product.productPrice).toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+    `;
 
-    $(document).ready(() => {
-        renderProducts();
+    container.appendChild(card);
+  });
+}
+async function loadProductsFromBackend(query = "") {
+  // optional: if query too short, just return all
+  if (query && query.trim().length < 2) {
+    const all = await productService.getAllProducts();
+    renderProducts(all);
+    return;
+  }
 
-        // Live search
-        $('#searchBar').on('keyup', function () {
-            const input = this.value.toLowerCase();
-            $('.product').each(function () {
-                const title = $(this).find("h5").text().toLowerCase();
-                $(this).toggle(title.includes(input));
-            });
-        });
+  const results = await productService.searchProducts(query);
+  renderProducts(results);
+}
 
-        // Purchase button handler
-        $(document).on('click', '.purchase-btn', async function () {
-            const token = localStorage.getItem('jwt_token');
 
-            if (!token) {
-                window.location.hash = '#register';
-                return;
-            }
+  function openProductFromCard(el) {
+    const productId = $(el).data("product-id") || $(el).attr("data-product-id");
+    localStorage.setItem("selected_product_id", productId);
+    window.location.hash = "#product";
+  }
 
-            const button = $(this);
-            const card = button.closest(".card");
-            const productId = card.data("product-id") || card.attr("data-product-id");
+  $(document).ready(() => {
+     loadProductsFromBackend(""); 
 
-            const result = await paymentService.createPayment(productId);
+    // Search filter (unchanged)
+    let searchTimer = null;
 
-            if (result) {
-                button.text("Purchased")
-                    .removeClass("btn-outline-dark")
-                    .addClass("btn-success")
-                    .prop("disabled", true);
+$('#searchBar').on('input', function () {
+  const q = this.value;
 
-                // Optional: Refresh list so it renders "Sold"
-                renderProducts();
-            } else {
-                alert("Error processing payment.");
-            }
-        });
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    loadProductsFromBackend(q);
+  }, 250); 
+});
+
+    // Click anywhere on the card
+    $(document).on("click", ".product-card", function () {
+      openProductFromCard(this);
     });
+
+    // Keyboard support: Enter / Space
+    $(document).on("keydown", ".product-card", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openProductFromCard(this);
+      }
+    });
+  });
 </script>

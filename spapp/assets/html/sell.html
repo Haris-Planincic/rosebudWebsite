@@ -1,0 +1,73 @@
+<header class="bg-dark py-5">
+  <div class="container px-4 px-lg-5 my-5">
+    <div class="text-center text-white">
+      <h1 class="display-4 fw-bolder">SELL A PRODUCT</h1>
+      <p class="lead fw-normal text-white-50 mb-0">Create your own listing</p>
+    </div>
+  </div>
+</header>
+
+<section class="py-5">
+  <div class="container px-4 px-lg-5">
+    <div class="row justify-content-center">
+      <div class="col-md-7">
+
+        <div class="card p-4">
+          <form id="sellForm">
+            <div class="mb-3">
+              <label class="form-label">Product name</label>
+              <input type="text" class="form-control" name="productName" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Price</label>
+              <input type="number" class="form-control" name="productPrice" min="0.01" step="0.01" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="productDescription" rows="4" required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Image</label>
+              <input type="file" class="form-control" name="productImage" accept=".jpg,.jpeg,.png,.webp" required>
+            </div>
+
+            <button type="submit" class="btn btn-outline-dark w-100">Post product</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  $(document).ready(function () {
+
+    $("#sellForm").on("submit", async function (e) {
+      e.preventDefault();
+
+      const token = localStorage.getItem("jwt_token");
+      if (!token) {
+        window.location.hash = "#login";
+        return;
+      }
+
+      const form = document.getElementById("sellForm");
+      const formData = new FormData(form);
+
+      try {
+        const resp = await productService.sellProduct(formData);
+        alert("Product posted successfully!");
+        window.location.hash = "#products";
+        if (typeof renderProducts === "function") {
+          renderProducts();
+        }
+      } catch (err) {
+        alert("Failed to post product. Check console for details.");
+      }
+    });
+
+  });
+</script>

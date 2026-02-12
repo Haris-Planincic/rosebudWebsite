@@ -11,29 +11,17 @@
  * )
  */
 Flight::route('GET /purchases', function(){
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::purchaseService()->getAll());
 });
-/**
- * @OA\Get(
- *     path="/purchases/{purchaseId}",
- *     tags={"purchases"},
- *     summary="Get purchase by ID",
- *     @OA\Parameter(
- *         name="purchaseId",
- *         in="path",
- *         required=true,
- *         description="ID of the purchase",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Details of a specific purchase"
- *     )
- * )
- */
-Flight::route('GET /purchases/@id', function($id){
-    Flight::json(Flight::purchaseService()->getById($id));
+
+Flight::route('GET /purchases/me', function() {
+    Flight::auth_middleware()->authorizeRoles([Roles::USER, Roles::ADMIN]);
+
+    $me = (int)Flight::get('user')->userId;
+    Flight::json(Flight::purchaseService()->getMine($me));
 });
+
 /**
  * @OA\Post(
  *     path="/purchases",

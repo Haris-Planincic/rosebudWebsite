@@ -4604,6 +4604,13 @@ input[type="button"].btn-block {
   flex-shrink: 0;
   width: 100%;
 }
+.card-img-fixed {
+  height: 260px;              
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .poster-img {
   width: 100%; /* Ensures it fills the card width */
   height: 400px; /* Standardized height */

@@ -27,7 +27,7 @@ class AuthService {
     }
 
     // Set default role
-    $data['role'] = 'user'; // 👈 Add this line
+    $data['role'] = 'user'; 
 
     // Hash password
     $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
@@ -59,7 +59,7 @@ class AuthService {
         $payload = [
             'user' => $user,
             'iat' => time(),
-            'exp' => time() + (60 * 60 * 24) // 24 hours
+            'exp' => time() + (60 * 60 * 24)
         ];
 
         $token = JWT::encode($payload, Config::JWT_SECRET(), 'HS256');
@@ -69,4 +69,16 @@ class AuthService {
             'data' => array_merge($user, ['token' => $token])
         ];
     }
+    public function issueTokenFromUser($user) {
+    unset($user['password']);
+
+    $payload = [
+        'user' => $user,
+        'iat' => time(),
+        'exp' => time() + (60 * 60 * 24) 
+    ];
+
+    return JWT::encode($payload, Config::JWT_SECRET(), 'HS256');
+}
+
 }

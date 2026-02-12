@@ -8,7 +8,10 @@ class ScreeningService {
         $this->dao = new ScreeningDao();
     }
 
-    public function getAll() {
+    public function getAll($q = null) {
+        if ($q !== null && trim($q) !== '') {
+        return $this->dao->searchScreening($q);
+    }
         return $this->dao->getAll();
     }
 

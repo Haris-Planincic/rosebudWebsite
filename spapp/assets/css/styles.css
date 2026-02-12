@@ -99,7 +99,7 @@ body {
   line-height: var(--bs-body-line-height);
   color: white;
   text-align: var(--bs-body-text-align);
-  background-image: URL(../images/backgroundlarge.jpg);
+  background-image: URL(../images/grain.jpg);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
@@ -8158,12 +8158,12 @@ textarea.form-control-lg {
 
 .bg-light {
   --bs-bg-opacity: 1;
-  background-color: lightcoral !important;
+  background-color: white !important;
 }
 
 .bg-dark {
   --bs-bg-opacity: 1;
-  background-image: URL(../images/poster-collage.jpg);
+  background-image: URL(../images/postre.jpg);
 }
 
 .bg-black {
@@ -10838,7 +10838,7 @@ textarea.form-control-lg {
   margin-top: 20px;
 }
 .view-more button {
-  background-color: #FF6347; /* Coral color */
+  background-color: white; /* Coral color */
   border: 3px solid white; /* White outline */
   color: white;
   padding: 12px 40px;

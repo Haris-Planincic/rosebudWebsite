@@ -13,7 +13,31 @@ Flight::route('GET /users', function () {
     Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::userService()->getAll());
 });
+Flight::route('GET /users/search', function() {
+    // ✅ reads token from Authorization header
+    Flight::auth_middleware()->verifyToken();
 
+    // ✅ allow both user + admin
+    $user = Flight::get('user');
+    $role = strtolower($user->role ?? '');
+
+    if (!in_array($role, ['user', 'admin'], true)) {
+        Flight::halt(403, 'Forbidden: role not allowed');
+    }
+
+    $q = trim(Flight::request()->query['q'] ?? '');
+    if (strlen($q) < 2) {
+        Flight::json([]);
+        return;
+    }
+
+    Flight::json(Flight::userService()->searchByName($q, (int)$user->userId));
+});
+Flight::route('GET /users/me', function () {
+  Flight::auth_middleware()->verifyToken();
+  $user = Flight::get('user');
+  Flight::json(Flight::userService()->getMe((int)$user->userId));
+});
 /**
  * @OA\Get(
  *     path="/users/{userId}",
@@ -109,12 +133,42 @@ Flight::route('POST /auth/register', function () {
  *     @OA\Response(response=200, description="User updated")
  * )
  */
+Flight::route('PUT /users/me', function () {
+    Flight::auth_middleware()->verifyToken();
+    $me = Flight::get('user');
+
+    $data = Flight::request()->data->getData();
+    $updatedUser = Flight::userService()->updateMe((int)$me->userId, $data);
+
+    if (!$updatedUser) {
+        Flight::halt(404, "User not found");
+    }
+
+    $newToken = Flight::auth_service()->issueTokenFromUser($updatedUser);
+
+    Flight::json([
+        "user" => $updatedUser,
+        "token" => $newToken
+    ]);
+});
+
+
+Flight::route('PUT /users/me/password', function () {
+  Flight::auth_middleware()->verifyToken();
+  $user = Flight::get('user');
+  $data = Flight::request()->data->getData();
+
+  $currentPassword = $data['currentPassword'] ?? '';
+  $newPassword = $data['newPassword'] ?? '';
+
+  $ok = Flight::userService()->changePassword((int)$user->userId, $currentPassword, $newPassword);
+  Flight::json(["success" => $ok]);
+});
 Flight::route('PUT /users/@id', function ($id) {
     $authHeader = Flight::request()->getHeader("Authorization");
     $token = $authHeader ? str_replace('Bearer ', '', $authHeader) : null;
     Flight::auth_middleware()->verifyToken($token);
     $data = Flight::request()->data->getData();
-    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(Flight::userService()->update($id, $data));
 });
 
@@ -134,3 +188,9 @@ Flight::route('DELETE /users/@id', function ($id) {
     Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
     Flight::json(["success" => Flight::userService()->delete($id)]);
 });
+/**
+ * Search users by name (first or last)
+ * GET /users/search?q=har
+ */
+
+

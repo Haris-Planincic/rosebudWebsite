@@ -29,11 +29,25 @@
     <p class="m-0 text-center text-white">Copyright &copy; Haris Planincic 2024</p>
   </div>
 </footer>
+<style>
+  .product-card {
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
 
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+}
+
+.product-card:focus {
+  outline: 2px solid rgba(0,0,0,0.2);
+  outline-offset: 2px;
+}
+
+</style>
 <!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="../services/productService.js"></script>
-<script src="../services/paymentService.js"></script>
+
 
 <script>
   async function renderFeaturedProducts(limit = 8) {
@@ -47,24 +61,22 @@
       const card = document.createElement("div");
       card.className = "col mb-5 product";
       card.innerHTML = `
-        <div class="card h-100" data-product-id="${product.productId}">
-          <img class="card-img-top" src="${product.productImage}" alt="${product.productName}" />
-          <div class="card-body p-4">
-            <div class="text-center">
-              <h5 class="fw-bolder">${product.productName}</h5>
-              $${parseFloat(product.productPrice).toFixed(2)}
-            </div>
-          </div>
-          <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-            <div class="text-center">
-              ${isSold
-                ? `<button class="btn btn-danger mt-auto" disabled>Sold</button>`
-                : `<button class="btn btn-outline-dark mt-auto purchase-btn" type="button">Purchase</button>`
-              }
-            </div>
-          </div>
-        </div>
-      `;
+  <div class="card h-100 product-card"
+       role="button"
+       tabindex="0"
+       data-product-id="${product.productId}">
+    <img class="card-img-top card-img-fixed"
+         src="http://localhost/webprogramming2025-milestone2/backend/${product.productImage}"
+         alt="${product.productName}" />
+    <div class="card-body p-4">
+      <div class="text-center">
+        <h5 class="fw-bolder mb-2">${product.productName}</h5>
+        <div class="text-muted">$${parseFloat(product.productPrice).toFixed(2)}</div>
+      </div>
+    </div>
+  </div>
+`;
+
       container.appendChild(card);
     });
   }
@@ -72,31 +84,17 @@
   $(document).ready(() => {
     renderFeaturedProducts();
 
-    $(document).on('click', '.purchase-btn', async function () {
-      const token = localStorage.getItem('jwt_token');
+$(document).on("click", ".product-card", function () {
+  const productId = $(this).data("product-id") || $(this).attr("data-product-id");
+  localStorage.setItem("selected_product_id", productId);
+  window.location.hash = "#product";
+});
+$(document).on("keydown", ".product-card", function (e) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    $(this).click();
+  }
+});
 
-      if (!token) {
-        window.location.hash = '#register';
-        return;
-      }
-
-      const button = $(this);
-      const card = button.closest(".card");
-      const productId = card.data("product-id") || card.attr("data-product-id");
-
-      const result = await paymentService.createPayment(productId);
-
-      if (result) {
-        button.text("Purchased")
-          .removeClass("btn-outline-dark")
-          .addClass("btn-success")
-          .prop("disabled", true);
-
-        // Optional: Re-render to reflect sold state
-        renderFeaturedProducts();
-      } else {
-        alert("Error processing payment.");
-      }
-    });
   });
 </script>
